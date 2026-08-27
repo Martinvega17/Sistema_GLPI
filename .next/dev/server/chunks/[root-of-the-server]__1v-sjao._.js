@@ -216,7 +216,7 @@ async function GET(request) {
             status: 404
         });
     }
-    if (__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$systems$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["DEMO_MODE"]) {
+    if ((0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$systems$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["isSystemDemo"])(system)) {
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json((0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$demoData$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["getDemoTicketDetail"])({
             content: null
         }));
@@ -236,6 +236,8 @@ async function GET(request) {
 "use strict";
 
 __turbopack_context__.s([
+    "buildDemoResultForSystem",
+    ()=>buildDemoResultForSystem,
     "getDemoResults",
     ()=>getDemoResults,
     "getDemoTicketDetail",
@@ -246,129 +248,177 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$systems$2e$js__$5b$ap
 function hoursAgoIso(h) {
     return new Date(Date.now() - h * 60 * 60 * 1000).toISOString().slice(0, 19).replace("T", " ");
 }
-function getDemoResults() {
-    // "frH" = horas que tardó mesa en dar la primera respuesta/escalar el
-    // ticket, contadas desde su creación. null = todavía sin primera
-    // respuesta (el ticket es más nuevo que ese tiempo simulado).
-    const templates = [
-        {
-            title: "No enciende switch de laboratorio",
-            priorityId: 6,
-            statusId: 2,
-            ageH: 6,
-            frH: 0.5
-        },
-        {
-            title: "Correo institucional no sincroniza",
-            priorityId: 4,
-            statusId: 1,
-            ageH: 30,
-            frH: 3
-        },
-        {
-            title: "Impresora sin tóner - control escolar",
-            priorityId: 2,
-            statusId: 4,
-            ageH: 40,
-            frH: 8
-        },
-        {
-            title: "VPN caída para acceso remoto",
-            priorityId: 5,
-            statusId: 2,
-            ageH: 9,
-            frH: null
-        },
-        {
-            title: "Solicitud de alta de usuario",
-            priorityId: 1,
-            statusId: 1,
-            ageH: 12,
-            frH: 1
-        },
-        {
-            title: "Proyector de aula 4 sin señal",
-            priorityId: 3,
-            statusId: 3,
-            ageH: 50,
-            frH: 20
-        },
-        {
-            title: "Sistema de becas no carga",
-            priorityId: 5,
-            statusId: 1,
-            ageH: 7,
-            frH: 0.2
-        },
-        {
-            title: "Renovación de certificado SSL",
-            priorityId: 4,
-            statusId: 4,
-            ageH: 26,
-            frH: 2
-        }
-    ];
-    return __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$systems$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["SYSTEMS"].map((system, sIdx)=>{
-        const tickets = templates.filter((_, i)=>(i + sIdx) % __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$systems$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["SYSTEMS"].length !== __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$systems$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["SYSTEMS"].length - 1 || sIdx === 0).map((t, i)=>({
-                id: `${system.id}-demo-${i}`,
-                rawId: 1000 + i,
-                systemId: system.id,
-                systemLabel: system.label,
-                title: t.title,
-                statusId: t.statusId,
-                status: [
-                    "",
-                    "Nuevo",
-                    "En curso (asignado)",
-                    "En curso (planificado)",
-                    "En espera",
-                    "Resuelto",
-                    "Cerrado"
-                ][t.statusId],
-                priorityId: t.priorityId,
-                priority: [
-                    "",
-                    "Muy baja",
-                    "Baja",
-                    "Media",
-                    "Alta",
-                    "Muy alta",
-                    "Mayor"
-                ][t.priorityId],
-                dateCreated: hoursAgoIso(t.ageH),
-                dateModified: hoursAgoIso(Math.max(0, t.ageH - 1)),
-                // Simulación de "primera respuesta de mesa" para el export de
-                // tiempos de respuesta (ver /api/report?metrics=first_response).
-                // Solo existe si frH < ageH (si no, el ticket aún no tendría
-                // respuesta a esta hora).
-                firstResponseAt: t.frH != null && t.ageH > t.frH ? hoursAgoIso(t.ageH - t.frH) : null,
-                requester: null,
-                content: `Descripción de ejemplo: ${t.title}. Reportado por el usuario, pendiente de revisión técnica.`,
-                url: `${system.baseUrl}/front/ticket.form.php?id=${1000 + i}`
-            }));
+const STATUS_LABELS = [
+    "",
+    "Nuevo",
+    "En curso (asignado)",
+    "En curso (planificado)",
+    "En espera",
+    "Resuelto",
+    "Cerrado"
+];
+const PRIORITY_LABELS = [
+    "",
+    "Muy baja",
+    "Baja",
+    "Media",
+    "Alta",
+    "Muy alta",
+    "Mayor"
+];
+const ATTENDERS = [
+    "María Guadalupe Leyva Saavedra",
+    "Noe Amable García",
+    "Fernando José Torres Tóvar"
+];
+const AREAS_POOL = [
+    "Mesa de Servicios",
+    "Almacenamiento",
+    "Monitoreo",
+    "Seguridad",
+    "Redes y Telecomunicaciones",
+    "Virtualización"
+];
+// "frH" = horas que tardó mesa en dar la primera respuesta/escalar el
+// ticket, contadas desde su creación. null = todavía sin primera
+// respuesta (el ticket es más nuevo que ese tiempo simulado).
+const TEMPLATES = [
+    {
+        title: "No enciende switch de laboratorio",
+        priorityId: 6,
+        statusId: 2,
+        ageH: 6,
+        frH: 0.5
+    },
+    {
+        title: "Correo institucional no sincroniza",
+        priorityId: 4,
+        statusId: 1,
+        ageH: 30,
+        frH: 3
+    },
+    {
+        title: "Impresora sin tóner - control escolar",
+        priorityId: 2,
+        statusId: 4,
+        ageH: 40,
+        frH: 8
+    },
+    {
+        title: "VPN caída para acceso remoto",
+        priorityId: 5,
+        statusId: 2,
+        ageH: 9,
+        frH: null
+    },
+    {
+        title: "Solicitud de alta de usuario",
+        priorityId: 1,
+        statusId: 1,
+        ageH: 12,
+        frH: 1
+    },
+    {
+        title: "Proyector de aula 4 sin señal",
+        priorityId: 3,
+        statusId: 3,
+        ageH: 50,
+        frH: 20
+    },
+    {
+        title: "Sistema de becas no carga",
+        priorityId: 5,
+        statusId: 1,
+        ageH: 7,
+        frH: 0.2
+    },
+    {
+        title: "Renovación de certificado SSL",
+        priorityId: 4,
+        statusId: 4,
+        ageH: 26,
+        frH: 2
+    },
+    {
+        title: "Solicitud de eliminación de VM",
+        priorityId: 3,
+        statusId: 6,
+        ageH: 60,
+        frH: 4
+    }
+];
+function buildDemoResultForSystem(system, seedIndex = 0) {
+    const tickets = TEMPLATES.filter((_, i)=>(i + seedIndex) % 4 !== 0 || seedIndex === 0).map((t, i)=>{
+        const isSolvedOrClosed = t.statusId >= 5;
+        const isClosed = t.statusId === 6;
+        const attendedBy = ATTENDERS[(i + seedIndex) % ATTENDERS.length];
+        const attendedByAll = [
+            ATTENDERS[(i + seedIndex) % ATTENDERS.length],
+            ATTENDERS[(i + seedIndex + 1) % ATTENDERS.length]
+        ];
+        const resolvedBy = isSolvedOrClosed ? ATTENDERS[(i + seedIndex + 1) % ATTENDERS.length] : null;
+        const areas = [
+            AREAS_POOL[i % AREAS_POOL.length],
+            AREAS_POOL[(i + 2) % AREAS_POOL.length],
+            AREAS_POOL[(i + 4) % AREAS_POOL.length]
+        ];
         return {
+            id: `${system.id}-demo-${i}`,
+            rawId: 1000 + i,
             systemId: system.id,
             systemLabel: system.label,
-            ok: true,
-            tickets,
-            error: null
+            title: t.title,
+            statusId: t.statusId,
+            status: STATUS_LABELS[t.statusId],
+            priorityId: t.priorityId,
+            priority: PRIORITY_LABELS[t.priorityId],
+            dateCreated: hoursAgoIso(t.ageH),
+            dateModified: hoursAgoIso(Math.max(0, t.ageH - 1)),
+            // Simulación de "primera respuesta de mesa" para el export de
+            // tiempos de respuesta (ver /api/report?metrics=first_response).
+            // Solo existe si frH < ageH (si no, el ticket aún no tendría
+            // respuesta a esta hora).
+            firstResponseAt: t.frH != null && t.ageH > t.frH ? hoursAgoIso(t.ageH - t.frH) : null,
+            requester: "usuario.demo",
+            content: `Descripción de ejemplo: ${t.title}. Reportado por el usuario, pendiente de revisión técnica.`,
+            url: `${system.baseUrl || "https://demo.local"}/front/ticket.form.php?id=${1000 + i}`,
+            // --- Campos extra para la tabla detallada por proyecto ---
+            solution: isSolvedOrClosed ? `Se atendió el caso "${t.title}". Se aplicó la solución de ejemplo y se confirmó con el solicitante.` : "",
+            dateSolved: isSolvedOrClosed ? hoursAgoIso(Math.max(0, t.ageH - 3)) : null,
+            dateClosed: isClosed ? hoursAgoIso(Math.max(0, t.ageH - 1)) : null,
+            attendedBy,
+            attendedByAll,
+            resolvedBy,
+            areas,
+            lastFollowupAt: hoursAgoIso(Math.max(0, t.ageH - 1)),
+            lastTechResponseAt: hoursAgoIso(Math.max(0, t.ageH - 1.3))
         };
     });
+    return {
+        systemId: system.id,
+        systemLabel: system.label,
+        ok: true,
+        tickets,
+        error: null
+    };
+}
+function getDemoResults() {
+    return __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$systems$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["SYSTEMS"].map((system, sIdx)=>buildDemoResultForSystem(system, sIdx));
 }
 function getDemoTicketDetail(ticket) {
     return {
         ok: true,
         content: ticket?.content || "Descripción de ejemplo no disponible.",
         // Áreas asignadas al TICKET (pueden ser varias, como en GLPI real).
-        groupNames: [
+        groupNames: ticket?.areas || [
             "Redes y Telecomunicaciones",
             "Virtualización",
             "Almacenamiento"
         ],
         lastFollowup: {
-            date: hoursAgoIso(1),
-            authorName: "Equipo de Soporte (demo)",
-            groupNames: [
+            date: ticket?.lastFollowupAt || hoursAgoIso(1),
+            authorName: ticket?.attendedBy || "Equipo de Soporte (demo)",
+            groupNames: ticket?.areas || [
                 "Redes y Telecomunicaciones",
                 "Virtualización",
                 "Almacenamiento"
@@ -638,6 +688,12 @@ function normalizeTicket(t, system) {
         priority: priorityLabel(t.priority),
         dateCreated: t.date,
         dateModified: t.date_mod,
+        // solvedate/closedate vienen directo en el ticket completo, sin
+        // necesidad de una llamada extra — a diferencia de la solución y de
+        // quién atendió/resolvió, que sí requieren ITILFollowup/ITILSolution
+        // (ver fetchTicketDetail más abajo).
+        dateSolved: t.solvedate || null,
+        dateClosed: t.closedate || null,
         requester: t.users_id_recipient || null,
         // Descripción original del ticket (para el resumen del asistente).
         content: stripHtml(t.content || ""),
@@ -813,6 +869,34 @@ async function fetchTicketDetail(system, rawId) {
             // no crítico
             }
         }
+        // 4b) TODAS las personas que dieron seguimiento al ticket (para la
+        // columna "Personal que atendió", que puede mostrar varios nombres —
+        // igual que en GLPI cuando distintos técnicos van dejando seguimientos).
+        // Se limita a MAX_ATTENDERS autores únicos para no disparar una llamada
+        // a User por cada seguimiento en tickets con historial muy largo.
+        const MAX_ATTENDERS = 8;
+        let attendedByAll = [];
+        try {
+            const uniqueAuthorIds = [
+                ...new Set(followups.map((f)=>f.users_id).filter(Boolean))
+            ].slice(0, MAX_ATTENDERS);
+            attendedByAll = (await Promise.all(uniqueAuthorIds.map(async (uid)=>{
+                if (uid === lastFollowup?.users_id && authorName) return authorName;
+                try {
+                    const uRes = await fetch(`${system.baseUrl}/apirest.php/User/${uid}`, opts);
+                    if (!uRes.ok) return null;
+                    const uData = await uRes.json();
+                    return [
+                        uData.firstname,
+                        uData.realname
+                    ].filter(Boolean).join(" ") || uData.name || null;
+                } catch  {
+                    return null;
+                }
+            }))).filter(Boolean);
+        } catch (e) {
+            debugNotes.push(`Resolución de 'personal que atendió' lanzó excepción: ${e.message || e}`);
+        }
         // 5) Área REAL de quien respondió: el/los grupo(s) a los que pertenece
         // esa persona en GLPI (Group_User), NO el/los grupo(s) asignados al
         // ticket. Un ticket puede estar asignado a varias áreas (Redes,
@@ -842,10 +926,64 @@ async function fetchTicketDetail(system, rawId) {
         } else {
             debugNotes.push("El último seguimiento no tiene users_id (autor vacío/anónimo) — no se puede buscar su grupo");
         }
+        // 6) Solución (ITILSolution): texto de la solución y quién la registró
+        // ("personal que resolvió"). closedate/solvedate SÍ vienen directo en el
+        // ticket completo (ticketRaw), sin necesidad de otra llamada.
+        let solutionText = "";
+        let resolvedByName = null;
+        try {
+            const solRes = await fetch(`${system.baseUrl}/apirest.php/Ticket/${rawId}/ITILSolution?range=0-4`, opts);
+            if (solRes.ok) {
+                const rawSol = await solRes.json();
+                const solList = Array.isArray(rawSol) ? rawSol : [];
+                // Más reciente primero: la última solución registrada es la vigente.
+                solList.sort((a, b)=>new Date((b.date_creation || "").replace(" ", "T")) - new Date((a.date_creation || "").replace(" ", "T")));
+                const lastSolution = solList[0] || null;
+                if (lastSolution) {
+                    solutionText = stripHtml(lastSolution.content || "");
+                    if (lastSolution.users_id_editor || lastSolution.users_id) {
+                        const solUserId = lastSolution.users_id_editor || lastSolution.users_id;
+                        try {
+                            const suRes = await fetch(`${system.baseUrl}/apirest.php/User/${solUserId}`, opts);
+                            if (suRes.ok) {
+                                const suData = await suRes.json();
+                                resolvedByName = [
+                                    suData.firstname,
+                                    suData.realname
+                                ].filter(Boolean).join(" ") || suData.name || null;
+                            }
+                        } catch  {
+                        // no crítico
+                        }
+                    }
+                } else {
+                    debugNotes.push(`ITILSolution: respuesta OK pero 0 soluciones registradas para el ticket ${rawId}`);
+                }
+            } else {
+                debugNotes.push(`ITILSolution respondió HTTP ${solRes.status} (probable falta de permiso, o el ticket no tiene solución)`);
+            }
+        } catch (e) {
+            debugNotes.push(`ITILSolution lanzó excepción: ${e.message || e}`);
+        }
+        // 7) "Última respuesta del área técnica" = último seguimiento PÚBLICO
+        // (no privado), distinto de "Última retro" que es el último seguimiento
+        // sin importar si es público o una nota interna.
+        const lastPublicFollowup = followups.find((f)=>!f.is_private) || null;
         return {
             ok: true,
             content: stripHtml(ticketRaw.content || ""),
             groupNames,
+            areas: groupNames,
+            dateSolved: ticketRaw.solvedate || null,
+            dateClosed: ticketRaw.closedate || null,
+            solution: solutionText,
+            attendedBy: authorName,
+            attendedByAll: attendedByAll.length > 0 ? attendedByAll : authorName ? [
+                authorName
+            ] : [],
+            resolvedBy: resolvedByName,
+            lastFollowupAt: lastFollowup?.date || null,
+            lastTechResponseAt: lastPublicFollowup?.date || null,
             lastFollowup: lastFollowup ? {
                 date: lastFollowup.date,
                 authorName,
@@ -863,6 +1001,15 @@ async function fetchTicketDetail(system, rawId) {
             ok: false,
             content: null,
             groupNames: [],
+            areas: [],
+            dateSolved: null,
+            dateClosed: null,
+            solution: "",
+            attendedBy: null,
+            attendedByAll: [],
+            resolvedBy: null,
+            lastFollowupAt: null,
+            lastTechResponseAt: null,
             lastFollowup: null,
             error: (err.message || String(err)) + causeMsg,
             debugNotes
@@ -937,9 +1084,11 @@ __turbopack_context__.s([
     "DEMO_MODE",
     ()=>DEMO_MODE,
     "SYSTEMS",
-    ()=>SYSTEMS
+    ()=>SYSTEMS,
+    "isSystemDemo",
+    ()=>isSystemDemo
 ]);
-// Configuración de los 5 sistemas GLPI.
+// Configuración de las instancias GLPI.
 // Cada instancia se define por variables de entorno para no hardcodear credenciales.
 // Ver .env.example para el formato completo.
 function envOr(name, fallback) {
@@ -970,7 +1119,7 @@ const SYSTEMS = [
     },
     {
         id: "prepa",
-        label: "Prepa",
+        label: "Prepa en Línea",
         baseUrl: envOr("GLPI_PREPA_URL", "https://opcenter-prepa.cns-ipicyt.mx"),
         appToken: process.env.GLPI_PREPA_APP_TOKEN || "",
         userToken: process.env.GLPI_PREPA_USER_TOKEN || "",
@@ -997,8 +1146,23 @@ const SYSTEMS = [
         user: process.env.GLPI_MUJERES_USER || process.env.GLPI_USER || "",
         password: process.env.GLPI_MUJERES_PASSWORD || process.env.GLPI_PASSWORD || "",
         insecureTLS: envOr("GLPI_MUJERES_INSECURE_TLS", "false") === "true"
+    },
+    {
+        id: "imss",
+        label: "IMSS",
+        baseUrl: envOr("GLPI_IMSS_URL", ""),
+        appToken: process.env.GLPI_IMSS_APP_TOKEN || "",
+        userToken: process.env.GLPI_IMSS_USER_TOKEN || "",
+        user: process.env.GLPI_IMSS_USER || process.env.GLPI_USER || "",
+        password: process.env.GLPI_IMSS_PASSWORD || process.env.GLPI_PASSWORD || "",
+        insecureTLS: envOr("GLPI_IMSS_INSECURE_TLS", "false") === "true"
     }
 ];
+function isSystemDemo(system) {
+    if (DEMO_MODE) return true;
+    if (!system.baseUrl) return true;
+    return false;
+}
 }),
 ];
 

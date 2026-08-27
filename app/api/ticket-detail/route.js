@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { SYSTEMS, DEMO_MODE } from "@/lib/systems";
+import { SYSTEMS, isSystemDemo } from "@/lib/systems";
 import { fetchTicketDetail } from "@/lib/glpiClient";
 import { getDemoTicketDetail } from "@/lib/demoData";
 
@@ -23,7 +23,7 @@ export async function GET(request) {
     return NextResponse.json({ error: `Sistema desconocido: ${systemId}` }, { status: 404 });
   }
 
-  if (DEMO_MODE) {
+  if (isSystemDemo(system)) {
     return NextResponse.json(getDemoTicketDetail({ content: null }));
   }
 

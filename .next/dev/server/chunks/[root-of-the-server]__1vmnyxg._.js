@@ -639,7 +639,7 @@ function normalizeTicket(t, system) {
 // consultando /Group/{id} en paralelo. Ignora silenciosamente los IDs que
 // fallen o no existan. Compartida por la resolución de "área del ticket" y
 // "área real de la persona" en fetchTicketDetail.
-async function resolveGroupNames(system, groupIds, opts) {
+async function resolveGroupNames(system, groupIds, opts, debugNotes) {
     const uniqueIds = [
         ...new Set((groupIds || []).filter(Boolean))
     ];
@@ -647,17 +647,42 @@ async function resolveGroupNames(system, groupIds, opts) {
     const names = await Promise.all(uniqueIds.map(async (gid)=>{
         try {
             const gRes = await fetch(`${system.baseUrl}/apirest.php/Group/${gid}`, opts);
-            if (!gRes.ok) return null;
+            if (!gRes.ok) return {
+                gid,
+                ok: false,
+                status: gRes.status,
+                name: null
+            };
             const gData = await gRes.json();
-            return gData.completename || gData.name || null;
-        } catch  {
-            return null;
+            return {
+                gid,
+                ok: true,
+                status: gRes.status,
+                name: gData.completename || gData.name || null
+            };
+        } catch (e) {
+            return {
+                gid,
+                ok: false,
+                status: null,
+                name: null,
+                error: e.message || String(e)
+            };
         }
     }));
-    return names.filter(Boolean);
+    const failed = names.filter((n)=>!n.name);
+    if (failed.length > 0 && Array.isArray(debugNotes)) {
+        debugNotes.push(`Group/{id} no resolvió: ${failed.map((f)=>`id=${f.gid} status=${f.status ?? "excepción: " + f.error}`).join(" | ")}`);
+    }
+    return names.map((n)=>n.name).filter(Boolean);
 }
 async function fetchTicketDetail(system, rawId) {
     let sessionToken;
+    // Registra qué paso falló y por qué (status HTTP / excepción), para poder
+    // diagnosticar por qué "área" sale vacía en un sistema y en otro no. No
+    // afecta el comportamiento normal: solo se devuelve si se pide ?debug=1
+    // desde /api/ticket-detail.
+    const debugNotes = [];
     try {
         sessionToken = await initSession(system);
         const headers = {
@@ -679,6 +704,9 @@ async function fetchTicketDetail(system, rawId) {
             throw new Error(`[${system.label}] GET Ticket/${rawId} falló (${ticketRes.status}): ${body.slice(0, 300)}`);
         }
         const ticketRaw = await ticketRes.json();
+        if (!ticketRaw || !ticketRaw.content) {
+            debugNotes.push(`Ticket/${rawId}: la respuesta no trae 'content' (o vino vacío) — campos recibidos: ${Object.keys(ticketRaw || {}).slice(0, 15).join(", ")}`);
+        }
         // 2) Seguimientos (respuestas). Igual que en fetchTicketsForSystem, NO
         // pedimos sort/order al API — varía por instancia y puede dar 400.
         // Ordenamos nosotros por fecha, más reciente primero.
@@ -687,11 +715,35 @@ async function fetchTicketDetail(system, rawId) {
             const fRes = await fetch(`${system.baseUrl}/apirest.php/Ticket/${rawId}/ITILFollowup?range=0-49`, opts);
             if (fRes.ok) {
                 const raw = await fRes.json();
-                if (Array.isArray(raw)) followups = raw;
+                if (Array.isArray(raw)) {
+                    followups = raw;
+                    if (raw.length === 0) {
+                        debugNotes.push(`ITILFollowup: respuesta OK pero 0 seguimientos para el ticket ${rawId} en este GLPI`);
+                    }
+                } else {
+                    debugNotes.push(`ITILFollowup: respuesta OK pero no es un arreglo (¿objeto de error con 200?): ${JSON.stringify(raw).slice(0, 200)}`);
+                }
+            } else {
+                const body = await fRes.text().catch(()=>"");
+                debugNotes.push(`ITILFollowup respondió HTTP ${fRes.status}: ${body.slice(0, 200)} — probable que esta instancia use 'TicketFollowup' en vez de 'ITILFollowup' (versión de GLPI más vieja), o falta de permiso`);
+                // Respaldo: probamos el endpoint viejo TicketFollowup por si esta
+                // instancia es una versión de GLPI anterior a la que renombró el
+                // subitem a ITILFollowup.
+                try {
+                    const legacyRes = await fetch(`${system.baseUrl}/apirest.php/Ticket/${rawId}/TicketFollowup?range=0-49`, opts);
+                    if (legacyRes.ok) {
+                        const legacyRaw = await legacyRes.json();
+                        if (Array.isArray(legacyRaw) && legacyRaw.length > 0) {
+                            followups = legacyRaw;
+                            debugNotes.push(`TicketFollowup (endpoint legado) SÍ devolvió ${legacyRaw.length} seguimiento(s) — esta instancia usa el nombre viejo del subitem`);
+                        }
+                    }
+                } catch  {
+                // sin respaldo disponible
+                }
             }
-        } catch  {
-        // si esta instancia no expone ITILFollowup (versiones viejas de GLPI
-        // usan TicketFollowup), simplemente no mostramos seguimientos
+        } catch (e) {
+            debugNotes.push(`ITILFollowup lanzó excepción: ${e.message || e}`);
         }
         followups.sort((a, b)=>new Date((b.date || "").replace(" ", "T")) - new Date((a.date || "").replace(" ", "T")));
         const lastFollowup = followups[0] || null;
@@ -706,6 +758,9 @@ async function fetchTicketDetail(system, rawId) {
             if (gtRes.ok) {
                 const rawGroups = await gtRes.json();
                 const groupList = Array.isArray(rawGroups) ? rawGroups : [];
+                if (groupList.length === 0) {
+                    debugNotes.push("Group_Ticket: respuesta OK pero arreglo vacío (el ticket no tiene ningún grupo ligado en GLPI)");
+                }
                 let assignedIds = [
                     ...new Set(groupList.filter((g)=>Number(g.type) === 2).map((g)=>g.groups_id).filter(Boolean))
                 ];
@@ -717,10 +772,15 @@ async function fetchTicketDetail(system, rawId) {
                         ...new Set(groupList.map((g)=>g.groups_id).filter(Boolean))
                     ];
                 }
-                groupNames = await resolveGroupNames(system, assignedIds, opts);
+                groupNames = await resolveGroupNames(system, assignedIds, opts, debugNotes);
+                if (assignedIds.length > 0 && groupNames.length === 0) {
+                    debugNotes.push(`Group_Ticket devolvió IDs de grupo (${assignedIds.join(",")}) pero Group/{id} no resolvió ningún nombre — probable falta de permiso del usuario API sobre 'Group' en este GLPI`);
+                }
+            } else {
+                debugNotes.push(`Group_Ticket respondió HTTP ${gtRes.status} (probable falta de permiso del usuario API sobre este endpoint)`);
             }
-        } catch  {
-        // no crítico: sin grupo asignado o el endpoint no aplica
+        } catch (e) {
+            debugNotes.push(`Group_Ticket lanzó excepción: ${e.message || e}`);
         }
         // 4) Autor del último seguimiento (para mostrar quién respondió).
         let authorName = null;
@@ -751,15 +811,21 @@ async function fetchTicketDetail(system, rawId) {
                 if (guRes.ok) {
                     const rawGU = await guRes.json();
                     const guList = Array.isArray(rawGU) ? rawGU : [];
+                    if (guList.length === 0) {
+                        debugNotes.push(`Group_User: el usuario ${lastFollowup.users_id} no pertenece a ningún grupo en este GLPI`);
+                    }
                     const groupIds = [
                         ...new Set(guList.map((g)=>g.groups_id).filter(Boolean))
                     ];
-                    authorGroupNames = await resolveGroupNames(system, groupIds, opts);
+                    authorGroupNames = await resolveGroupNames(system, groupIds, opts, debugNotes);
+                } else {
+                    debugNotes.push(`Group_User respondió HTTP ${guRes.status} para el usuario ${lastFollowup.users_id}`);
                 }
-            } catch  {
-            // no crítico: si no se puede consultar, se deja vacío y el frontend
-            // cae de regreso a mostrar las áreas del ticket.
+            } catch (e) {
+                debugNotes.push(`Group_User lanzó excepción: ${e.message || e}`);
             }
+        } else {
+            debugNotes.push("El último seguimiento no tiene users_id (autor vacío/anónimo) — no se puede buscar su grupo");
         }
         return {
             ok: true,
@@ -773,7 +839,8 @@ async function fetchTicketDetail(system, rawId) {
                 message: stripHtml(lastFollowup.content || ""),
                 isPrivate: !!lastFollowup.is_private
             } : null,
-            error: null
+            error: null,
+            debugNotes
         };
     } catch (err) {
         const causeMsg = err.cause ? ` — causa: ${err.cause.code || ""} ${err.cause.message || err.cause}`.trim() : "";
@@ -782,7 +849,8 @@ async function fetchTicketDetail(system, rawId) {
             content: null,
             groupNames: [],
             lastFollowup: null,
-            error: (err.message || String(err)) + causeMsg
+            error: (err.message || String(err)) + causeMsg,
+            debugNotes
         };
     } finally{
         if (sessionToken) await killSession(system, sessionToken);

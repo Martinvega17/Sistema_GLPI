@@ -540,7 +540,7 @@ function AssistantPanel({ ticket }) {
                                 children: "Última respuesta"
                             }, void 0, false, {
                                 fileName: "[project]/components/AssistantPanel.jsx",
-                                lineNumber: 99,
+                                lineNumber: 101,
                                 columnNumber: 13
                             }, this),
                             loadingDetail && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -548,7 +548,7 @@ function AssistantPanel({ ticket }) {
                                 children: "Cargando…"
                             }, void 0, false, {
                                 fileName: "[project]/components/AssistantPanel.jsx",
-                                lineNumber: 101,
+                                lineNumber: 103,
                                 columnNumber: 15
                             }, this),
                             !loadingDetail && detail?.error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -559,7 +559,7 @@ function AssistantPanel({ ticket }) {
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/AssistantPanel.jsx",
-                                lineNumber: 104,
+                                lineNumber: 106,
                                 columnNumber: 15
                             }, this),
                             !loadingDetail && !detail?.error && !detail?.lastFollowup && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -567,7 +567,7 @@ function AssistantPanel({ ticket }) {
                                 children: "Sin seguimientos registrados aún."
                             }, void 0, false, {
                                 fileName: "[project]/components/AssistantPanel.jsx",
-                                lineNumber: 107,
+                                lineNumber: 109,
                                 columnNumber: 15
                             }, this),
                             !loadingDetail && detail?.lastFollowup && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -578,25 +578,18 @@ function AssistantPanel({ ticket }) {
                                         children: [
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                 className: "px-1.5 py-0.5 rounded border border-signal-info/40 text-signal-info",
-                                                title: "Área de la persona que respondió (no necesariamente igual a las áreas asignadas al ticket)",
-                                                children: detail.lastFollowup.authorGroupNames?.length ? detail.lastFollowup.authorGroupNames.join(", ") : detail.lastFollowup.groupNames?.length ? detail.lastFollowup.groupNames.join(", ") : "Área no registrada"
+                                                title: "Grupo(s) asignados al ticket",
+                                                children: detail.groupNames?.length ? detail.groupNames.join(", ") : "Área no registrada"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/AssistantPanel.jsx",
-                                                lineNumber: 112,
+                                                lineNumber: 114,
                                                 columnNumber: 19
-                                            }, this),
-                                            detail.lastFollowup.authorName && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                children: detail.lastFollowup.authorName
-                                            }, void 0, false, {
-                                                fileName: "[project]/components/AssistantPanel.jsx",
-                                                lineNumber: 122,
-                                                columnNumber: 54
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                 children: formatDate(detail.lastFollowup.date)
                                             }, void 0, false, {
                                                 fileName: "[project]/components/AssistantPanel.jsx",
-                                                lineNumber: 123,
+                                                lineNumber: 120,
                                                 columnNumber: 19
                                             }, this),
                                             detail.lastFollowup.isPrivate && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -604,44 +597,33 @@ function AssistantPanel({ ticket }) {
                                                 children: "(nota privada)"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/AssistantPanel.jsx",
-                                                lineNumber: 125,
+                                                lineNumber: 122,
                                                 columnNumber: 21
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/AssistantPanel.jsx",
-                                        lineNumber: 111,
+                                        lineNumber: 113,
                                         columnNumber: 17
-                                    }, this),
-                                    detail.groupNames?.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                        className: "text-[11px] text-ink-lo font-mono",
-                                        children: [
-                                            "Ticket asignado a: ",
-                                            detail.groupNames.join(", ")
-                                        ]
-                                    }, void 0, true, {
-                                        fileName: "[project]/components/AssistantPanel.jsx",
-                                        lineNumber: 129,
-                                        columnNumber: 19
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                         className: "text-sm text-ink-hi font-body leading-relaxed whitespace-pre-wrap max-h-32 overflow-y-auto scrollbar-thin",
                                         children: detail.lastFollowup.message || "(sin contenido)"
                                     }, void 0, false, {
                                         fileName: "[project]/components/AssistantPanel.jsx",
-                                        lineNumber: 133,
+                                        lineNumber: 125,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/AssistantPanel.jsx",
-                                lineNumber: 110,
+                                lineNumber: 112,
                                 columnNumber: 15
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/AssistantPanel.jsx",
-                        lineNumber: 98,
+                        lineNumber: 100,
                         columnNumber: 11
                     }, this),
                     loadingSuggestion && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -649,7 +631,7 @@ function AssistantPanel({ ticket }) {
                         children: "Analizando…"
                     }, void 0, false, {
                         fileName: "[project]/components/AssistantPanel.jsx",
-                        lineNumber: 141,
+                        lineNumber: 133,
                         columnNumber: 33
                     }, this),
                     !loadingSuggestion && suggestion && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -660,7 +642,7 @@ function AssistantPanel({ ticket }) {
                                 children: "Acción sugerida"
                             }, void 0, false, {
                                 fileName: "[project]/components/AssistantPanel.jsx",
-                                lineNumber: 144,
+                                lineNumber: 136,
                                 columnNumber: 15
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -668,7 +650,7 @@ function AssistantPanel({ ticket }) {
                                 children: suggestion.text
                             }, void 0, false, {
                                 fileName: "[project]/components/AssistantPanel.jsx",
-                                lineNumber: 145,
+                                lineNumber: 137,
                                 columnNumber: 15
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -679,13 +661,13 @@ function AssistantPanel({ ticket }) {
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/AssistantPanel.jsx",
-                                lineNumber: 146,
+                                lineNumber: 138,
                                 columnNumber: 15
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/AssistantPanel.jsx",
-                        lineNumber: 143,
+                        lineNumber: 135,
                         columnNumber: 13
                     }, this)
                 ]

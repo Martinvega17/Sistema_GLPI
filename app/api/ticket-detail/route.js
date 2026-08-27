@@ -28,5 +28,12 @@ export async function GET(request) {
   }
 
   const detail = await fetchTicketDetail(system, rawId);
+  const debug = searchParams.get("debug") === "1";
+  if (!debug) {
+    // En uso normal no mandamos debugNotes al cliente para no ensuciar la
+    // respuesta; solo se incluyen si se piden explícitamente.
+    const { debugNotes, ...rest } = detail;
+    return NextResponse.json(rest);
+  }
   return NextResponse.json(detail);
 }

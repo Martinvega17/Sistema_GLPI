@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import StatusStrip from "@/components/StatusStrip";
 import StatCards from "@/components/StatCards";
 import TicketTable from "@/components/TicketTable";
 import AssistantPanel from "@/components/AssistantPanel";
+import ToastNotifications from "@/components/ToastNotifications";
 import { STATUS_FILTER_OPTIONS, matchesStatusFilter } from "@/lib/statusFilters";
 
 const REFRESH_INTERVAL_MS = 30_000;
@@ -17,11 +18,60 @@ export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [lastFetchError, setLastFetchError] = useState(null);
+  const [toasts, setToasts] = useState([]);
+
+  // Snapshot de la carga anterior (id -> dateModified) para poder comparar
+  // contra la carga nueva y detectar tickets nuevos o con cambios. Es un
+  // useRef (no state) porque no necesita disparar un re-render por sí solo.
+  // null = todavía no hubo una primera carga exitosa (para no disparar
+  // notificaciones de "nuevo ticket" para TODO el histórico al abrir la página).
+  const prevTicketsMapRef = useRef(null);
+
+  function pushToast(toast) {
+    const id = `${toast.type}-${toast.ticketId}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    setToasts((prev) => [...prev, { ...toast, id }]);
+  }
+
+  function dismissToast(id) {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }
 
   async function load() {
     try {
       const res = await fetch("/api/tickets", { cache: "no-store" });
       const json = await res.json();
+
+      const prevMap = prevTicketsMapRef.current;
+      if (prevMap) {
+        for (const t of json.tickets) {
+          const prev = prevMap.get(t.id);
+          if (!prev) {
+            // No estaba en la carga anterior -> ticket nuevo (verde).
+            pushToast({
+              type: "new",
+              ticketId: t.id,
+              title: `#${t.rawId} · ${t.systemLabel}`,
+              subtitle: t.title,
+            });
+          } else if (prev.dateModified !== t.dateModified) {
+            // Ya existía, pero su fecha de modificación cambió -> lo más
+            // probable es que le hayan respondido o cambiado de estado
+            // (amarillo). No distinguimos el motivo exacto porque
+            // consultar los seguimientos de CADA ticket en cada refresco de
+            // 30s sería demasiado pesado contra los 5 GLPI.
+            pushToast({
+              type: "update",
+              ticketId: t.id,
+              title: `#${t.rawId} · ${t.systemLabel}`,
+              subtitle: t.title,
+            });
+          }
+        }
+      }
+      prevTicketsMapRef.current = new Map(
+        json.tickets.map((t) => [t.id, { dateModified: t.dateModified }])
+      );
+
       setData(json);
       setLastFetchError(null);
     } catch (err) {
@@ -66,6 +116,7 @@ export default function DashboardPage() {
 
   return (
     <main className="max-w-7xl mx-auto px-6 py-8 flex flex-col gap-6">
+      <ToastNotifications toasts={toasts} onDismiss={dismissToast} />
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl font-bold text-ink-hi">Ops · Tickets CNS-IPICYT</h1>

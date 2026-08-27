@@ -232,54 +232,65 @@ function hoursAgoIso(h) {
     return new Date(Date.now() - h * 60 * 60 * 1000).toISOString().slice(0, 19).replace("T", " ");
 }
 function getDemoResults() {
+    // "frH" = horas que tardó mesa en dar la primera respuesta/escalar el
+    // ticket, contadas desde su creación. null = todavía sin primera
+    // respuesta (el ticket es más nuevo que ese tiempo simulado).
     const templates = [
         {
             title: "No enciende switch de laboratorio",
             priorityId: 6,
             statusId: 2,
-            ageH: 6
+            ageH: 6,
+            frH: 0.5
         },
         {
             title: "Correo institucional no sincroniza",
             priorityId: 4,
             statusId: 1,
-            ageH: 30
+            ageH: 30,
+            frH: 3
         },
         {
             title: "Impresora sin tóner - control escolar",
             priorityId: 2,
             statusId: 4,
-            ageH: 40
+            ageH: 40,
+            frH: 8
         },
         {
             title: "VPN caída para acceso remoto",
             priorityId: 5,
             statusId: 2,
-            ageH: 9
+            ageH: 9,
+            frH: null
         },
         {
             title: "Solicitud de alta de usuario",
             priorityId: 1,
             statusId: 1,
-            ageH: 12
+            ageH: 12,
+            frH: 1
         },
         {
             title: "Proyector de aula 4 sin señal",
             priorityId: 3,
             statusId: 3,
-            ageH: 50
+            ageH: 50,
+            frH: 20
         },
         {
             title: "Sistema de becas no carga",
             priorityId: 5,
             statusId: 1,
-            ageH: 7
+            ageH: 7,
+            frH: 0.2
         },
         {
             title: "Renovación de certificado SSL",
             priorityId: 4,
             statusId: 4,
-            ageH: 26
+            ageH: 26,
+            frH: 2
         }
     ];
     return __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$systems$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["SYSTEMS"].map((system, sIdx)=>{
@@ -311,6 +322,11 @@ function getDemoResults() {
                 ][t.priorityId],
                 dateCreated: hoursAgoIso(t.ageH),
                 dateModified: hoursAgoIso(Math.max(0, t.ageH - 1)),
+                // Simulación de "primera respuesta de mesa" para el export de
+                // tiempos de respuesta (ver /api/report?metrics=first_response).
+                // Solo existe si frH < ageH (si no, el ticket aún no tendría
+                // respuesta a esta hora).
+                firstResponseAt: t.frH != null && t.ageH > t.frH ? hoursAgoIso(t.ageH - t.frH) : null,
                 requester: null,
                 content: `Descripción de ejemplo: ${t.title}. Reportado por el usuario, pendiente de revisión técnica.`,
                 url: `${system.baseUrl}/front/ticket.form.php?id=${1000 + i}`
@@ -328,14 +344,25 @@ function getDemoTicketDetail(ticket) {
     return {
         ok: true,
         content: ticket?.content || "Descripción de ejemplo no disponible.",
+        // Áreas asignadas al TICKET (pueden ser varias, como en GLPI real).
         groupNames: [
-            "Soporte Técnico"
+            "Redes y Telecomunicaciones",
+            "Virtualización",
+            "Almacenamiento"
         ],
         lastFollowup: {
             date: hoursAgoIso(1),
             authorName: "Equipo de Soporte (demo)",
             groupNames: [
-                "Soporte Técnico"
+                "Redes y Telecomunicaciones",
+                "Virtualización",
+                "Almacenamiento"
+            ],
+            // Área REAL de la persona que respondió (distinta a las del ticket):
+            // así se ve en la plataforma cuando, por ejemplo, alguien de Mesa de
+            // Servicios contesta un ticket asignado a varias áreas técnicas.
+            authorGroupNames: [
+                "Mesa de Servicios"
             ],
             message: "Seguimiento de ejemplo: se revisó el caso y se está a la espera de más información del usuario.",
             isPrivate: false
@@ -352,6 +379,8 @@ __turbopack_context__.s([
     ()=>TICKET_PRIORITY,
     "TICKET_STATUS",
     ()=>TICKET_STATUS,
+    "fetchFirstResponseForTickets",
+    ()=>fetchFirstResponseForTickets,
     "fetchTicketDetail",
     ()=>fetchTicketDetail,
     "fetchTicketsForSystem",
@@ -606,6 +635,27 @@ function normalizeTicket(t, system) {
 // un ticket en el panel), NO para toda la lista, porque cada llamada abre
 // una sesión GLPI adicional y sería muy pesado hacerlo para cientos de
 // tickets a la vez.
+// Resuelve una lista de IDs de grupo a sus nombres (completename o name),
+// consultando /Group/{id} en paralelo. Ignora silenciosamente los IDs que
+// fallen o no existan. Compartida por la resolución de "área del ticket" y
+// "área real de la persona" en fetchTicketDetail.
+async function resolveGroupNames(system, groupIds, opts) {
+    const uniqueIds = [
+        ...new Set((groupIds || []).filter(Boolean))
+    ];
+    if (uniqueIds.length === 0) return [];
+    const names = await Promise.all(uniqueIds.map(async (gid)=>{
+        try {
+            const gRes = await fetch(`${system.baseUrl}/apirest.php/Group/${gid}`, opts);
+            if (!gRes.ok) return null;
+            const gData = await gRes.json();
+            return gData.completename || gData.name || null;
+        } catch  {
+            return null;
+        }
+    }));
+    return names.filter(Boolean);
+}
 async function fetchTicketDetail(system, rawId) {
     let sessionToken;
     try {
@@ -667,17 +717,7 @@ async function fetchTicketDetail(system, rawId) {
                         ...new Set(groupList.map((g)=>g.groups_id).filter(Boolean))
                     ];
                 }
-                const names = await Promise.all(assignedIds.map(async (gid)=>{
-                    try {
-                        const gRes = await fetch(`${system.baseUrl}/apirest.php/Group/${gid}`, opts);
-                        if (!gRes.ok) return null;
-                        const gData = await gRes.json();
-                        return gData.completename || gData.name || null;
-                    } catch  {
-                        return null;
-                    }
-                }));
-                groupNames = names.filter(Boolean);
+                groupNames = await resolveGroupNames(system, assignedIds, opts);
             }
         } catch  {
         // no crítico: sin grupo asignado o el endpoint no aplica
@@ -698,6 +738,29 @@ async function fetchTicketDetail(system, rawId) {
             // no crítico
             }
         }
+        // 5) Área REAL de quien respondió: el/los grupo(s) a los que pertenece
+        // esa persona en GLPI (Group_User), NO el/los grupo(s) asignados al
+        // ticket. Un ticket puede estar asignado a varias áreas (Redes,
+        // Virtualización, Almacenamiento, etc.) aunque quien contestó sea, por
+        // ejemplo, una sola persona de Mesa de Servicios — que es justo lo que
+        // se veía distinto entre el dashboard y GLPI.
+        let authorGroupNames = [];
+        if (lastFollowup?.users_id) {
+            try {
+                const guRes = await fetch(`${system.baseUrl}/apirest.php/User/${lastFollowup.users_id}/Group_User`, opts);
+                if (guRes.ok) {
+                    const rawGU = await guRes.json();
+                    const guList = Array.isArray(rawGU) ? rawGU : [];
+                    const groupIds = [
+                        ...new Set(guList.map((g)=>g.groups_id).filter(Boolean))
+                    ];
+                    authorGroupNames = await resolveGroupNames(system, groupIds, opts);
+                }
+            } catch  {
+            // no crítico: si no se puede consultar, se deja vacío y el frontend
+            // cae de regreso a mostrar las áreas del ticket.
+            }
+        }
         return {
             ok: true,
             content: stripHtml(ticketRaw.content || ""),
@@ -706,6 +769,7 @@ async function fetchTicketDetail(system, rawId) {
                 date: lastFollowup.date,
                 authorName,
                 groupNames,
+                authorGroupNames,
                 message: stripHtml(lastFollowup.content || ""),
                 isPrivate: !!lastFollowup.is_private
             } : null,
@@ -724,18 +788,83 @@ async function fetchTicketDetail(system, rawId) {
         if (sessionToken) await killSession(system, sessionToken);
     }
 }
+// Trae, para una lista de tickets de UN sistema, la fecha de su primer
+// seguimiento (primera respuesta/escalación de mesa). Se usa solo para el
+// export "tiempos de respuesta" (app/api/report/route.js), NUNCA para el
+// dashboard normal, porque implica una llamada extra por ticket y sería
+// demasiado pesado hacerlo en cada refresco automático.
+// Devuelve un objeto { [rawId]: fechaISOoNull }.
+async function fetchFirstResponseForTickets(system, ticketRawIds) {
+    const result = {};
+    if (!ticketRawIds || ticketRawIds.length === 0) return result;
+    let sessionToken;
+    try {
+        sessionToken = await initSession(system);
+        const headers = {
+            "Session-Token": sessionToken,
+            ...system.appToken ? {
+                "App-Token": system.appToken
+            } : {}
+        };
+        const opts = {
+            method: "GET",
+            headers,
+            cache: "no-store",
+            dispatcher: dispatcherFor(system)
+        };
+        // Un ticket a la vez: GLPI no ofrece una forma simple de traer
+        // seguimientos de varios tickets distintos en una sola llamada.
+        for (const rawId of ticketRawIds){
+            try {
+                const fRes = await fetch(`${system.baseUrl}/apirest.php/Ticket/${rawId}/ITILFollowup?range=0-49`, opts);
+                if (!fRes.ok) {
+                    result[rawId] = null;
+                    continue;
+                }
+                const raw = await fRes.json();
+                const list = Array.isArray(raw) ? raw : [];
+                const earliest = list.reduce((min, f)=>{
+                    const d = new Date((f.date || "").replace(" ", "T"));
+                    if (Number.isNaN(d.getTime())) return min;
+                    if (!min || d < min.date) return {
+                        date: d,
+                        raw: f.date
+                    };
+                    return min;
+                }, null);
+                result[rawId] = earliest?.raw || null;
+            } catch  {
+                result[rawId] = null;
+            }
+        }
+    } catch  {
+    // Sesión no disponible para este sistema: dejamos el mapa vacío, el
+    // caller trata "sin dato" igual que "sin primera respuesta".
+    } finally{
+        if (sessionToken) await killSession(system, sessionToken);
+    }
+    return result;
+}
 ;
 }),
 "[project]/lib/sla.js [app-route] (ecmascript)", ((__turbopack_context__) => {
 "use strict";
 
 __turbopack_context__.s([
+    "CUSTOM_SLA_HOURS_BY_PRIORITY",
+    ()=>CUSTOM_SLA_HOURS_BY_PRIORITY,
+    "CUSTOM_SLA_SYSTEMS",
+    ()=>CUSTOM_SLA_SYSTEMS,
     "SLA_HOURS_BY_PRIORITY",
     ()=>SLA_HOURS_BY_PRIORITY,
+    "businessHoursBetween",
+    ()=>businessHoursBetween,
     "evaluateAll",
     ()=>evaluateAll,
     "evaluateSla",
     ()=>evaluateSla,
+    "isMexicanHoliday",
+    ()=>isMexicanHoliday,
     "summarize",
     ()=>summarize
 ]);
@@ -743,6 +872,11 @@ __turbopack_context__.s([
 // tiempos reales que maneje tu mesa de ayuda. Si en el futuro cada GLPI
 // expone su propio campo de SLA (time_to_resolve), se puede sustituir esta
 // heurística por ese dato real vía la API (SLA / SlaLevel en GLPI).
+//
+// Prioridades GLPI: 1 Muy baja, 2 Baja, 3 Media, 4 Alta, 5 Muy alta, 6 Mayor.
+//
+// Esquema por defecto (CNS, SECIHTI, Mujeres): igual que antes, calendario
+// 24/7 (no distingue horario laboral).
 const SLA_HOURS_BY_PRIORITY = {
     6: 4,
     5: 8,
@@ -751,6 +885,31 @@ const SLA_HOURS_BY_PRIORITY = {
     2: 96,
     1: 168
 };
+// Esquema especial para Prepa y UnADM. "businessHours: true" indica que el
+// tiempo se cuenta solo dentro del horario laboral (ver BUSINESS_HOURS abajo)
+// en vez de en horas naturales 24/7.
+const CUSTOM_SLA_SYSTEMS = new Set([
+    "prepa",
+    "unadm"
+]);
+const CUSTOM_SLA_HOURS_BY_PRIORITY = {
+    4: {
+        hours: 1,
+        businessHours: false
+    },
+    3: {
+        hours: 2,
+        businessHours: false
+    },
+    2: {
+        hours: 4,
+        businessHours: true
+    }
+};
+// Horario laboral para el cómputo de SLA en horas laborales: lunes a
+// viernes, 9:00 a 18:00, hora de México, excluyendo días festivos oficiales.
+const BUSINESS_START_HOUR = 9;
+const BUSINESS_END_HOUR = 18;
 const OPEN_STATUS_IDS = new Set([
     1,
     2,
@@ -763,11 +922,100 @@ function hoursSince(dateStr) {
     if (Number.isNaN(then.getTime())) return null;
     return (Date.now() - then.getTime()) / (1000 * 60 * 60);
 }
+// --- Días festivos oficiales en México (Art. 74 LFT) -----------------------
+// Fijos: 1 ene, 1 may, 16 sep, 25 dic.
+// Móviles: 1er lunes de febrero, 3er lunes de marzo, 3er lunes de noviembre.
+// 1 de diciembre solo es festivo cada 6 años (transmisión del Poder
+// Ejecutivo Federal); 2024 fue año de transmisión, por lo que se repite
+// cada 6 años a partir de esa fecha.
+function nthWeekdayOfMonth(year, monthIndex, weekday, n) {
+    const d = new Date(year, monthIndex, 1);
+    let count = 0;
+    while(d.getMonth() === monthIndex){
+        if (d.getDay() === weekday) {
+            count += 1;
+            if (count === n) return new Date(d);
+        }
+        d.setDate(d.getDate() + 1);
+    }
+    return null;
+}
+function sameYMD(a, b) {
+    return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+function mexicanHolidaysForYear(year) {
+    const holidays = [
+        new Date(year, 0, 1),
+        nthWeekdayOfMonth(year, 1, 1, 1),
+        nthWeekdayOfMonth(year, 2, 1, 3),
+        new Date(year, 4, 1),
+        new Date(year, 8, 16),
+        nthWeekdayOfMonth(year, 10, 1, 3),
+        new Date(year, 11, 25)
+    ];
+    if ((year - 2024) % 6 === 0) {
+        holidays.push(new Date(year, 11, 1)); // Transmisión del Poder Ejecutivo
+    }
+    return holidays.filter(Boolean);
+}
+function isMexicanHoliday(date) {
+    const holidays = mexicanHolidaysForYear(date.getFullYear());
+    return holidays.some((h)=>sameYMD(h, date));
+}
+function isBusinessDay(date) {
+    const day = date.getDay(); // 0 domingo ... 6 sábado
+    if (day === 0 || day === 6) return false;
+    if (isMexicanHoliday(date)) return false;
+    return true;
+}
+// Calcula las horas laborales transcurridas entre "start" y "end" (o ahora),
+// contando solo lunes a viernes de 9:00 a 18:00, excluyendo festivos.
+function businessHoursBetween(start, end) {
+    if (!(start instanceof Date) || Number.isNaN(start.getTime())) return null;
+    const rangeEnd = end instanceof Date && !Number.isNaN(end.getTime()) ? end : new Date();
+    if (rangeEnd <= start) return 0;
+    let totalMs = 0;
+    const cursor = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    while(cursor <= rangeEnd){
+        if (isBusinessDay(cursor)) {
+            const dayStart = new Date(cursor);
+            dayStart.setHours(BUSINESS_START_HOUR, 0, 0, 0);
+            const dayEnd = new Date(cursor);
+            dayEnd.setHours(BUSINESS_END_HOUR, 0, 0, 0);
+            const windowStart = start > dayStart ? start : dayStart;
+            const windowEnd = rangeEnd < dayEnd ? rangeEnd : dayEnd;
+            if (windowEnd > windowStart) {
+                totalMs += windowEnd.getTime() - windowStart.getTime();
+            }
+        }
+        cursor.setDate(cursor.getDate() + 1);
+    }
+    return totalMs / (1000 * 60 * 60);
+}
+// Resuelve la regla de SLA (horas límite + si se cuenta en horario laboral)
+// para un ticket dado, según su sistema (systemId) y prioridad (priorityId).
+function getSlaRule(ticket) {
+    if (CUSTOM_SLA_SYSTEMS.has(ticket.systemId)) {
+        const rule = CUSTOM_SLA_HOURS_BY_PRIORITY[ticket.priorityId];
+        if (rule) return rule;
+    }
+    return {
+        hours: SLA_HOURS_BY_PRIORITY[ticket.priorityId] ?? 48,
+        businessHours: false
+    };
+}
 // Devuelve el ticket enriquecido con banderas de SLA:
 //   slaHoursLimit, ageHours, slaStatus: "ok" | "warn" | "breach" | "closed"
 function evaluateSla(ticket) {
-    const limit = SLA_HOURS_BY_PRIORITY[ticket.priorityId] ?? 48;
-    const age = hoursSince(ticket.dateCreated);
+    const rule = getSlaRule(ticket);
+    const limit = rule.hours;
+    let age;
+    if (rule.businessHours) {
+        const created = ticket.dateCreated ? new Date(ticket.dateCreated.replace(" ", "T")) : null;
+        age = created && !Number.isNaN(created.getTime()) ? businessHoursBetween(created, new Date()) : null;
+    } else {
+        age = hoursSince(ticket.dateCreated);
+    }
     // Number(...) por seguridad: si statusId llegara como texto (no debería,
     // ya se normaliza en glpiClient.js), Set.has() con un número adentro no
     // lo reconocería y el ticket caería siempre en "closed" por defecto.

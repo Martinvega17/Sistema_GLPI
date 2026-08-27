@@ -14,6 +14,7 @@ export default function DashboardPage() {
   const [activeSystem, setActiveSystem] = useState(null);
   const [slaFilter, setSlaFilter] = useState("open"); // open | all | closed | breach | warn
   const [statusFilter, setStatusFilter] = useState("all"); // ver lib/statusFilters.js
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [lastFetchError, setLastFetchError] = useState(null);
 
@@ -36,6 +37,7 @@ export default function DashboardPage() {
 
   const filteredTickets = useMemo(() => {
     if (!data) return [];
+    const query = searchQuery.trim().toLowerCase();
     return data.tickets
       .filter((t) => (activeSystem ? t.systemId === activeSystem : true))
       .filter((t) => {
@@ -45,8 +47,22 @@ export default function DashboardPage() {
         return t.slaStatus === slaFilter; // breach | warn
       })
       .filter((t) => matchesStatusFilter(t, statusFilter))
-      .sort((a, b) => (b.ageHours || 0) - (a.ageHours || 0));
-  }, [data, activeSystem, slaFilter, statusFilter]);
+      .filter((t) => {
+        if (!query) return true;
+        const haystack = [t.rawId, t.title, t.systemLabel, t.status, t.priority, t.requester]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        return haystack.includes(query);
+      })
+      // Más nuevos primero (fecha de creación descendente). Los tickets sin
+      // fecha válida se van al final en vez de romper el orden.
+      .sort((a, b) => {
+        const dateA = a.dateCreated ? new Date(a.dateCreated.replace(" ", "T")).getTime() : 0;
+        const dateB = b.dateCreated ? new Date(b.dateCreated.replace(" ", "T")).getTime() : 0;
+        return dateB - dateA;
+      });
+  }, [data, activeSystem, slaFilter, statusFilter, searchQuery]);
 
   return (
     <main className="max-w-7xl mx-auto px-6 py-8 flex flex-col gap-6">
@@ -117,11 +133,25 @@ export default function DashboardPage() {
                 {label}
               </button>
             ))}
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Buscar ticket (id, título, sistema...)"
+              className="ml-auto w-64 px-3 py-1.5 rounded-md text-sm font-body border border-line bg-base-900 text-ink-hi placeholder-ink-lo focus:outline-none focus:border-signal-info transition-colors"
+            />
             <a
               href="/api/report?format=csv"
-              className="ml-auto px-3 py-1.5 rounded-md text-sm font-body border border-line bg-base-900 text-ink-mid hover:text-ink-hi transition-colors"
+              className="px-3 py-1.5 rounded-md text-sm font-body border border-line bg-base-900 text-ink-mid hover:text-ink-hi transition-colors"
             >
               ⭳ Exportar CSV
+            </a>
+            <a
+              href="/api/report?format=csv&scope=all&metrics=first_response"
+              title="Incluye cuánto tardó mesa en dar la primera respuesta/escalar cada ticket, desde que fue creado"
+              className="px-3 py-1.5 rounded-md text-sm font-body border border-line bg-base-900 text-ink-mid hover:text-ink-hi transition-colors"
+            >
+              ⭳ Exportar tiempos de respuesta
             </a>
           </div>
 

@@ -414,10 +414,22 @@ function priorityLabel(id) {
     return TICKET_PRIORITY[id] || `Desconocida (${id})`;
 }
 // Los campos de texto de GLPI (content de Ticket e ITILFollowup) vienen en
-// HTML. Los limpiamos a texto plano simple para mostrarlos en el panel.
+// HTML — y en varias instancias, encima, con las etiquetas escapadas como
+// entidades numéricas (&#60;p&#62; en vez de <p>). Primero decodificamos
+// entidades (numéricas y las básicas con nombre), y luego recién
+// convertimos las etiquetas HTML resultantes a texto plano.
+function decodeEntities(str) {
+    if (!str) return "";
+    return str.replace(/&#x([0-9a-f]+);/gi, (_, hex)=>String.fromCodePoint(parseInt(hex, 16))).replace(/&#(\d+);/g, (_, dec)=>String.fromCodePoint(parseInt(dec, 10))).replace(/&nbsp;/gi, " ").replace(/&amp;/gi, "&").replace(/&lt;/gi, "<").replace(/&gt;/gi, ">").replace(/&quot;/gi, '"').replace(/&#39;|&apos;/gi, "'");
+}
 function stripHtml(html) {
     if (!html) return "";
-    return html.replace(/<br\s*\/?>/gi, "\n").replace(/<\/p>/gi, "\n").replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/\n{3,}/g, "\n\n").trim();
+    // Se decodifica dos veces por si el contenido viene doblemente escapado
+    // (p. ej. "&amp;#60;" en vez de "&#60;"); la segunda pasada es inofensiva
+    // si ya no queda nada por decodificar.
+    let text = decodeEntities(html);
+    text = decodeEntities(text);
+    return text.replace(/<br\s*\/?>/gi, "\n").replace(/<\/p>/gi, "\n").replace(/<[^>]+>/g, "").replace(/\n{3,}/g, "\n\n").trim();
 }
 // Agente HTTPS que ignora errores de certificado — SOLO se usa si el
 // sistema tiene insecureTLS=true en .env.local (ver systems.js). Sirve para
@@ -479,41 +491,70 @@ async function killSession(system, sessionToken) {
 }
 // Trae los tickets de un sistema (abiertos y cerrados) y los normaliza a un
 // formato común para el dashboard.
-async function fetchTicketsForSystem(system, { rangeSize = 500 } = {}) {
+//
+// IMPORTANTE — paginación: un solo GET a GLPI solo devuelve como máximo
+// "rangeSize" tickets (los que GLPI decida, generalmente por ID ascendente
+// si no se pide "sort"). Si el sistema tiene más tickets que rangeSize,
+// pedir solo la primera página puede traer únicamente tickets viejos ya
+// cerrados y dejar fuera a los abiertos recientes — que es justo lo que
+// pasaba antes: en GLPI directo sí aparecían tickets "En curso", pero acá
+// nunca llegaban a pedirse. Por eso aquí SIEMPRE se pagina hasta traer
+// todo el historial (o hasta maxTickets, como límite de seguridad).
+async function fetchTicketsForSystem(system, { rangeSize = 500, maxTickets = 5000 } = {}) {
     let sessionToken;
     try {
         sessionToken = await initSession(system);
-        const url = new URL(`${system.baseUrl}/apirest.php/Ticket`);
-        url.searchParams.set("range", `0-${rangeSize - 1}`);
+        const headers = {
+            "Session-Token": sessionToken,
+            ...system.appToken ? {
+                "App-Token": system.appToken
+            } : {}
+        };
+        let allRaw = [];
+        let start = 0;
+        let total = null;
         // Sin filtro de estado: traemos todo (abiertos, resueltos y cerrados).
         // No pedimos "sort"/"order" al API: el número de search option que
         // corresponde a "ID" varía entre instancias de GLPI (versión, plugins,
         // configuración local), y pedir uno que no existe en esta instancia
         // devuelve un error 400 ("sort param is not a field of glpi_tickets").
-        // En vez de eso, ordenamos nosotros mismos en JS después de recibir
-        // los tickets (ver más abajo), que es independiente de esas opciones.
-        const res = await fetch(url.toString(), {
-            method: "GET",
-            headers: {
-                "Session-Token": sessionToken,
-                ...system.appToken ? {
-                    "App-Token": system.appToken
-                } : {}
-            },
-            cache: "no-store",
-            dispatcher: dispatcherFor(system)
-        });
-        if (!res.ok) {
-            const body = await res.text().catch(()=>"");
-            throw new Error(`[${system.label}] GET Ticket falló (${res.status}): ${body.slice(0, 300)}`);
+        // Ordenamos nosotros mismos en JS después de recibir todo (ver abajo).
+        for(;;){
+            const url = new URL(`${system.baseUrl}/apirest.php/Ticket`);
+            url.searchParams.set("range", `${start}-${start + rangeSize - 1}`);
+            const res = await fetch(url.toString(), {
+                method: "GET",
+                headers,
+                cache: "no-store",
+                dispatcher: dispatcherFor(system)
+            });
+            if (!res.ok) {
+                const body = await res.text().catch(()=>"");
+                throw new Error(`[${system.label}] GET Ticket falló (${res.status}): ${body.slice(0, 300)}`);
+            }
+            const raw = await res.json();
+            if (!Array.isArray(raw)) {
+                // Algunas versiones de GLPI devuelven un objeto de error con 200 OK
+                // en vez de un array cuando los criterios de búsqueda no son válidos.
+                throw new Error(`[${system.label}] respuesta inesperada de GET Ticket: ${JSON.stringify(raw).slice(0, 300)}`);
+            }
+            allRaw = allRaw.concat(raw);
+            // GLPI manda "Content-Range: inicio-fin/total" — de ahí sacamos
+            // cuántos tickets hay en total para saber si falta pedir más páginas.
+            if (total === null) {
+                const cr = res.headers.get("content-range");
+                if (cr && cr.includes("/")) {
+                    const parsedTotal = Number(cr.split("/")[1]);
+                    if (!Number.isNaN(parsedTotal)) total = parsedTotal;
+                }
+            }
+            start += rangeSize;
+            const paginaIncompleta = raw.length < rangeSize; // ya no hay más páginas
+            const yaLlegoAlTotal = total !== null && start >= total;
+            const llegoAlLimiteDeSeguridad = start >= maxTickets;
+            if (paginaIncompleta || yaLlegoAlTotal || llegoAlLimiteDeSeguridad) break;
         }
-        const raw = await res.json();
-        if (!Array.isArray(raw)) {
-            // Algunas versiones de GLPI devuelven un objeto de error con 200 OK
-            // en vez de un array cuando los criterios de búsqueda no son válidos.
-            throw new Error(`[${system.label}] respuesta inesperada de GET Ticket: ${JSON.stringify(raw).slice(0, 300)}`);
-        }
-        const tickets = raw.map((t)=>normalizeTicket(t, system)).sort((a, b)=>Number(b.rawId) - Number(a.rawId));
+        const tickets = allRaw.map((t)=>normalizeTicket(t, system)).sort((a, b)=>Number(b.rawId) - Number(a.rawId));
         return {
             systemId: system.id,
             systemLabel: system.label,
@@ -609,15 +650,27 @@ async function fetchTicketDetail(system, rawId) {
         followups.sort((a, b)=>new Date((b.date || "").replace(" ", "T")) - new Date((a.date || "").replace(" ", "T")));
         const lastFollowup = followups[0] || null;
         // 3) Grupo(s) asignados al ticket = "área". En GLPI, Group_Ticket.type
-        // 2 = grupo asignado (1 = solicitante, 3 = observador).
+        // 2 = grupo asignado (1 = solicitante, 3 = observador). Se compara con
+        // Number(...) porque, igual que con statusId, algunas instancias
+        // devuelven "type" como texto ("2") y la comparación estricta con el
+        // número 2 fallaría en silencio, dejando "área" vacía siempre.
         let groupNames = [];
         try {
             const gtRes = await fetch(`${system.baseUrl}/apirest.php/Ticket/${rawId}/Group_Ticket`, opts);
             if (gtRes.ok) {
                 const rawGroups = await gtRes.json();
-                const assignedIds = [
-                    ...new Set((Array.isArray(rawGroups) ? rawGroups : []).filter((g)=>g.type === 2).map((g)=>g.groups_id).filter(Boolean))
+                const groupList = Array.isArray(rawGroups) ? rawGroups : [];
+                let assignedIds = [
+                    ...new Set(groupList.filter((g)=>Number(g.type) === 2).map((g)=>g.groups_id).filter(Boolean))
                 ];
+                // Respaldo: si el ticket no tiene un grupo con type=2 (p. ej. está
+                // asignado a un técnico individual, no a un grupo), mostramos
+                // cualquier otro grupo ligado al ticket en vez de dejarlo vacío.
+                if (assignedIds.length === 0) {
+                    assignedIds = [
+                        ...new Set(groupList.map((g)=>g.groups_id).filter(Boolean))
+                    ];
+                }
                 const names = await Promise.all(assignedIds.map(async (gid)=>{
                     try {
                         const gRes = await fetch(`${system.baseUrl}/apirest.php/Group/${gid}`, opts);

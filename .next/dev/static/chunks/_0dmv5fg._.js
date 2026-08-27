@@ -29,6 +29,7 @@ function DashboardPage() {
     const [activeSystem, setActiveSystem] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
     const [slaFilter, setSlaFilter] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("open"); // open | all | closed | breach | warn
     const [statusFilter, setStatusFilter] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("all"); // ver lib/statusFilters.js
+    const [searchQuery, setSearchQuery] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("");
     const [selectedTicket, setSelectedTicket] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
     const [lastFetchError, setLastFetchError] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
     async function load() {
@@ -55,6 +56,7 @@ function DashboardPage() {
     const filteredTickets = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
         "DashboardPage.useMemo[filteredTickets]": ()=>{
             if (!data) return [];
+            const query = searchQuery.trim().toLowerCase();
             return data.tickets.filter({
                 "DashboardPage.useMemo[filteredTickets]": (t)=>activeSystem ? t.systemId === activeSystem : true
             }["DashboardPage.useMemo[filteredTickets]"]).filter({
@@ -66,15 +68,35 @@ function DashboardPage() {
                 }
             }["DashboardPage.useMemo[filteredTickets]"]).filter({
                 "DashboardPage.useMemo[filteredTickets]": (t)=>(0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$statusFilters$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["matchesStatusFilter"])(t, statusFilter)
-            }["DashboardPage.useMemo[filteredTickets]"]).sort({
-                "DashboardPage.useMemo[filteredTickets]": (a, b)=>(b.ageHours || 0) - (a.ageHours || 0)
+            }["DashboardPage.useMemo[filteredTickets]"]).filter({
+                "DashboardPage.useMemo[filteredTickets]": (t)=>{
+                    if (!query) return true;
+                    const haystack = [
+                        t.rawId,
+                        t.title,
+                        t.systemLabel,
+                        t.status,
+                        t.priority,
+                        t.requester
+                    ].filter(Boolean).join(" ").toLowerCase();
+                    return haystack.includes(query);
+                }
+            }["DashboardPage.useMemo[filteredTickets]"])// Más nuevos primero (fecha de creación descendente). Los tickets sin
+            // fecha válida se van al final en vez de romper el orden.
+            .sort({
+                "DashboardPage.useMemo[filteredTickets]": (a, b)=>{
+                    const dateA = a.dateCreated ? new Date(a.dateCreated.replace(" ", "T")).getTime() : 0;
+                    const dateB = b.dateCreated ? new Date(b.dateCreated.replace(" ", "T")).getTime() : 0;
+                    return dateB - dateA;
+                }
             }["DashboardPage.useMemo[filteredTickets]"]);
         }
     }["DashboardPage.useMemo[filteredTickets]"], [
         data,
         activeSystem,
         slaFilter,
-        statusFilter
+        statusFilter,
+        searchQuery
     ]);
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
         className: "max-w-7xl mx-auto px-6 py-8 flex flex-col gap-6",
@@ -89,7 +111,7 @@ function DashboardPage() {
                                 children: "Ops · Tickets CNS-IPICYT"
                             }, void 0, false, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 55,
+                                lineNumber: 71,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -102,13 +124,13 @@ function DashboardPage() {
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 56,
+                                lineNumber: 72,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/page.js",
-                        lineNumber: 54,
+                        lineNumber: 70,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -119,7 +141,7 @@ function DashboardPage() {
                                 children: "MODO DEMO — datos de ejemplo"
                             }, void 0, false, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 63,
+                                lineNumber: 79,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -127,19 +149,19 @@ function DashboardPage() {
                                 children: data ? `última actualización ${new Date(data.generatedAt).toLocaleTimeString("es-MX")}` : "cargando…"
                             }, void 0, false, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 67,
+                                lineNumber: 83,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/page.js",
-                        lineNumber: 61,
+                        lineNumber: 77,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/page.js",
-                lineNumber: 53,
+                lineNumber: 69,
                 columnNumber: 7
             }, this),
             lastFetchError && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -147,7 +169,7 @@ function DashboardPage() {
                 children: lastFetchError
             }, void 0, false, {
                 fileName: "[project]/app/page.js",
-                lineNumber: 74,
+                lineNumber: 90,
                 columnNumber: 9
             }, this),
             data?.errors?.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -161,12 +183,12 @@ function DashboardPage() {
                         ]
                     }, i, true, {
                         fileName: "[project]/app/page.js",
-                        lineNumber: 82,
+                        lineNumber: 98,
                         columnNumber: 13
                     }, this))
             }, void 0, false, {
                 fileName: "[project]/app/page.js",
-                lineNumber: 80,
+                lineNumber: 96,
                 columnNumber: 9
             }, this),
             data && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
@@ -178,14 +200,14 @@ function DashboardPage() {
                         onSelectSystem: setActiveSystem
                     }, void 0, false, {
                         fileName: "[project]/app/page.js",
-                        lineNumber: 91,
+                        lineNumber: 107,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$StatCards$2e$jsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
                         totals: data.totals
                     }, void 0, false, {
                         fileName: "[project]/app/page.js",
-                        lineNumber: 98,
+                        lineNumber: 114,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -218,22 +240,43 @@ function DashboardPage() {
                                     children: label
                                 }, key, false, {
                                     fileName: "[project]/app/page.js",
-                                    lineNumber: 108,
+                                    lineNumber: 124,
                                     columnNumber: 15
                                 }, this)),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                type: "text",
+                                value: searchQuery,
+                                onChange: (e)=>setSearchQuery(e.target.value),
+                                placeholder: "Buscar ticket (id, título, sistema...)",
+                                className: "ml-auto w-64 px-3 py-1.5 rounded-md text-sm font-body border border-line bg-base-900 text-ink-hi placeholder-ink-lo focus:outline-none focus:border-signal-info transition-colors"
+                            }, void 0, false, {
+                                fileName: "[project]/app/page.js",
+                                lineNumber: 136,
+                                columnNumber: 13
+                            }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
                                 href: "/api/report?format=csv",
-                                className: "ml-auto px-3 py-1.5 rounded-md text-sm font-body border border-line bg-base-900 text-ink-mid hover:text-ink-hi transition-colors",
+                                className: "px-3 py-1.5 rounded-md text-sm font-body border border-line bg-base-900 text-ink-mid hover:text-ink-hi transition-colors",
                                 children: "⭳ Exportar CSV"
                             }, void 0, false, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 120,
+                                lineNumber: 143,
+                                columnNumber: 13
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
+                                href: "/api/report?format=csv&scope=all&metrics=first_response",
+                                title: "Incluye cuánto tardó mesa en dar la primera respuesta/escalar cada ticket, desde que fue creado",
+                                className: "px-3 py-1.5 rounded-md text-sm font-body border border-line bg-base-900 text-ink-mid hover:text-ink-hi transition-colors",
+                                children: "⭳ Exportar tiempos de respuesta"
+                            }, void 0, false, {
+                                fileName: "[project]/app/page.js",
+                                lineNumber: 149,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/page.js",
-                        lineNumber: 100,
+                        lineNumber: 116,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -244,7 +287,7 @@ function DashboardPage() {
                                 children: "Estado:"
                             }, void 0, false, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 129,
+                                lineNumber: 159,
                                 columnNumber: 13
                             }, this),
                             __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$statusFilters$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["STATUS_FILTER_OPTIONS"].map(([key, label])=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -253,13 +296,13 @@ function DashboardPage() {
                                     children: label
                                 }, key, false, {
                                     fileName: "[project]/app/page.js",
-                                    lineNumber: 131,
+                                    lineNumber: 161,
                                     columnNumber: 15
                                 }, this))
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/page.js",
-                        lineNumber: 128,
+                        lineNumber: 158,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -271,26 +314,26 @@ function DashboardPage() {
                                 selectedId: selectedTicket?.id
                             }, void 0, false, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 146,
+                                lineNumber: 176,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$AssistantPanel$2e$jsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
                                 ticket: selectedTicket
                             }, void 0, false, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 151,
+                                lineNumber: 181,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/page.js",
-                        lineNumber: 145,
+                        lineNumber: 175,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/page.js",
-                lineNumber: 90,
+                lineNumber: 106,
                 columnNumber: 9
             }, this),
             !data && !lastFetchError && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -298,17 +341,17 @@ function DashboardPage() {
                 children: "Conectando con los 5 sistemas…"
             }, void 0, false, {
                 fileName: "[project]/app/page.js",
-                lineNumber: 157,
+                lineNumber: 187,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/page.js",
-        lineNumber: 52,
+        lineNumber: 68,
         columnNumber: 5
     }, this);
 }
-_s(DashboardPage, "KVmBec+gawLLz/OyO049U0wpY6Q=");
+_s(DashboardPage, "4oI9R79vBdErtTIxi6lWeP4tKnk=");
 _c = DashboardPage;
 var _c;
 __turbopack_context__.k.register(_c, "DashboardPage");
@@ -535,7 +578,8 @@ function AssistantPanel({ ticket }) {
                                         children: [
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                 className: "px-1.5 py-0.5 rounded border border-signal-info/40 text-signal-info",
-                                                children: detail.lastFollowup.groupNames?.length ? detail.lastFollowup.groupNames.join(", ") : "Área no registrada"
+                                                title: "Área de la persona que respondió (no necesariamente igual a las áreas asignadas al ticket)",
+                                                children: detail.lastFollowup.authorGroupNames?.length ? detail.lastFollowup.authorGroupNames.join(", ") : detail.lastFollowup.groupNames?.length ? detail.lastFollowup.groupNames.join(", ") : "Área no registrada"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/AssistantPanel.jsx",
                                                 lineNumber: 112,
@@ -545,14 +589,14 @@ function AssistantPanel({ ticket }) {
                                                 children: detail.lastFollowup.authorName
                                             }, void 0, false, {
                                                 fileName: "[project]/components/AssistantPanel.jsx",
-                                                lineNumber: 117,
+                                                lineNumber: 122,
                                                 columnNumber: 54
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                 children: formatDate(detail.lastFollowup.date)
                                             }, void 0, false, {
                                                 fileName: "[project]/components/AssistantPanel.jsx",
-                                                lineNumber: 118,
+                                                lineNumber: 123,
                                                 columnNumber: 19
                                             }, this),
                                             detail.lastFollowup.isPrivate && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -560,7 +604,7 @@ function AssistantPanel({ ticket }) {
                                                 children: "(nota privada)"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/AssistantPanel.jsx",
-                                                lineNumber: 120,
+                                                lineNumber: 125,
                                                 columnNumber: 21
                                             }, this)
                                         ]
@@ -569,12 +613,23 @@ function AssistantPanel({ ticket }) {
                                         lineNumber: 111,
                                         columnNumber: 17
                                     }, this),
+                                    detail.groupNames?.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                        className: "text-[11px] text-ink-lo font-mono",
+                                        children: [
+                                            "Ticket asignado a: ",
+                                            detail.groupNames.join(", ")
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/components/AssistantPanel.jsx",
+                                        lineNumber: 129,
+                                        columnNumber: 19
+                                    }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                         className: "text-sm text-ink-hi font-body leading-relaxed whitespace-pre-wrap max-h-32 overflow-y-auto scrollbar-thin",
                                         children: detail.lastFollowup.message || "(sin contenido)"
                                     }, void 0, false, {
                                         fileName: "[project]/components/AssistantPanel.jsx",
-                                        lineNumber: 123,
+                                        lineNumber: 133,
                                         columnNumber: 17
                                     }, this)
                                 ]
@@ -594,7 +649,7 @@ function AssistantPanel({ ticket }) {
                         children: "Analizando…"
                     }, void 0, false, {
                         fileName: "[project]/components/AssistantPanel.jsx",
-                        lineNumber: 131,
+                        lineNumber: 141,
                         columnNumber: 33
                     }, this),
                     !loadingSuggestion && suggestion && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -605,7 +660,7 @@ function AssistantPanel({ ticket }) {
                                 children: "Acción sugerida"
                             }, void 0, false, {
                                 fileName: "[project]/components/AssistantPanel.jsx",
-                                lineNumber: 134,
+                                lineNumber: 144,
                                 columnNumber: 15
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -613,7 +668,7 @@ function AssistantPanel({ ticket }) {
                                 children: suggestion.text
                             }, void 0, false, {
                                 fileName: "[project]/components/AssistantPanel.jsx",
-                                lineNumber: 135,
+                                lineNumber: 145,
                                 columnNumber: 15
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -624,13 +679,13 @@ function AssistantPanel({ ticket }) {
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/AssistantPanel.jsx",
-                                lineNumber: 136,
+                                lineNumber: 146,
                                 columnNumber: 15
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/AssistantPanel.jsx",
-                        lineNumber: 133,
+                        lineNumber: 143,
                         columnNumber: 13
                     }, this)
                 ]

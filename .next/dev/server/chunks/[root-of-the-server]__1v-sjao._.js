@@ -240,54 +240,65 @@ function hoursAgoIso(h) {
     return new Date(Date.now() - h * 60 * 60 * 1000).toISOString().slice(0, 19).replace("T", " ");
 }
 function getDemoResults() {
+    // "frH" = horas que tardó mesa en dar la primera respuesta/escalar el
+    // ticket, contadas desde su creación. null = todavía sin primera
+    // respuesta (el ticket es más nuevo que ese tiempo simulado).
     const templates = [
         {
             title: "No enciende switch de laboratorio",
             priorityId: 6,
             statusId: 2,
-            ageH: 6
+            ageH: 6,
+            frH: 0.5
         },
         {
             title: "Correo institucional no sincroniza",
             priorityId: 4,
             statusId: 1,
-            ageH: 30
+            ageH: 30,
+            frH: 3
         },
         {
             title: "Impresora sin tóner - control escolar",
             priorityId: 2,
             statusId: 4,
-            ageH: 40
+            ageH: 40,
+            frH: 8
         },
         {
             title: "VPN caída para acceso remoto",
             priorityId: 5,
             statusId: 2,
-            ageH: 9
+            ageH: 9,
+            frH: null
         },
         {
             title: "Solicitud de alta de usuario",
             priorityId: 1,
             statusId: 1,
-            ageH: 12
+            ageH: 12,
+            frH: 1
         },
         {
             title: "Proyector de aula 4 sin señal",
             priorityId: 3,
             statusId: 3,
-            ageH: 50
+            ageH: 50,
+            frH: 20
         },
         {
             title: "Sistema de becas no carga",
             priorityId: 5,
             statusId: 1,
-            ageH: 7
+            ageH: 7,
+            frH: 0.2
         },
         {
             title: "Renovación de certificado SSL",
             priorityId: 4,
             statusId: 4,
-            ageH: 26
+            ageH: 26,
+            frH: 2
         }
     ];
     return __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$systems$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["SYSTEMS"].map((system, sIdx)=>{
@@ -319,6 +330,11 @@ function getDemoResults() {
                 ][t.priorityId],
                 dateCreated: hoursAgoIso(t.ageH),
                 dateModified: hoursAgoIso(Math.max(0, t.ageH - 1)),
+                // Simulación de "primera respuesta de mesa" para el export de
+                // tiempos de respuesta (ver /api/report?metrics=first_response).
+                // Solo existe si frH < ageH (si no, el ticket aún no tendría
+                // respuesta a esta hora).
+                firstResponseAt: t.frH != null && t.ageH > t.frH ? hoursAgoIso(t.ageH - t.frH) : null,
                 requester: null,
                 content: `Descripción de ejemplo: ${t.title}. Reportado por el usuario, pendiente de revisión técnica.`,
                 url: `${system.baseUrl}/front/ticket.form.php?id=${1000 + i}`
@@ -336,14 +352,25 @@ function getDemoTicketDetail(ticket) {
     return {
         ok: true,
         content: ticket?.content || "Descripción de ejemplo no disponible.",
+        // Áreas asignadas al TICKET (pueden ser varias, como en GLPI real).
         groupNames: [
-            "Soporte Técnico"
+            "Redes y Telecomunicaciones",
+            "Virtualización",
+            "Almacenamiento"
         ],
         lastFollowup: {
             date: hoursAgoIso(1),
             authorName: "Equipo de Soporte (demo)",
             groupNames: [
-                "Soporte Técnico"
+                "Redes y Telecomunicaciones",
+                "Virtualización",
+                "Almacenamiento"
+            ],
+            // Área REAL de la persona que respondió (distinta a las del ticket):
+            // así se ve en la plataforma cuando, por ejemplo, alguien de Mesa de
+            // Servicios contesta un ticket asignado a varias áreas técnicas.
+            authorGroupNames: [
+                "Mesa de Servicios"
             ],
             message: "Seguimiento de ejemplo: se revisó el caso y se está a la espera de más información del usuario.",
             isPrivate: false
@@ -360,6 +387,8 @@ __turbopack_context__.s([
     ()=>TICKET_PRIORITY,
     "TICKET_STATUS",
     ()=>TICKET_STATUS,
+    "fetchFirstResponseForTickets",
+    ()=>fetchFirstResponseForTickets,
     "fetchTicketDetail",
     ()=>fetchTicketDetail,
     "fetchTicketsForSystem",
@@ -614,6 +643,27 @@ function normalizeTicket(t, system) {
 // un ticket en el panel), NO para toda la lista, porque cada llamada abre
 // una sesión GLPI adicional y sería muy pesado hacerlo para cientos de
 // tickets a la vez.
+// Resuelve una lista de IDs de grupo a sus nombres (completename o name),
+// consultando /Group/{id} en paralelo. Ignora silenciosamente los IDs que
+// fallen o no existan. Compartida por la resolución de "área del ticket" y
+// "área real de la persona" en fetchTicketDetail.
+async function resolveGroupNames(system, groupIds, opts) {
+    const uniqueIds = [
+        ...new Set((groupIds || []).filter(Boolean))
+    ];
+    if (uniqueIds.length === 0) return [];
+    const names = await Promise.all(uniqueIds.map(async (gid)=>{
+        try {
+            const gRes = await fetch(`${system.baseUrl}/apirest.php/Group/${gid}`, opts);
+            if (!gRes.ok) return null;
+            const gData = await gRes.json();
+            return gData.completename || gData.name || null;
+        } catch  {
+            return null;
+        }
+    }));
+    return names.filter(Boolean);
+}
 async function fetchTicketDetail(system, rawId) {
     let sessionToken;
     try {
@@ -675,17 +725,7 @@ async function fetchTicketDetail(system, rawId) {
                         ...new Set(groupList.map((g)=>g.groups_id).filter(Boolean))
                     ];
                 }
-                const names = await Promise.all(assignedIds.map(async (gid)=>{
-                    try {
-                        const gRes = await fetch(`${system.baseUrl}/apirest.php/Group/${gid}`, opts);
-                        if (!gRes.ok) return null;
-                        const gData = await gRes.json();
-                        return gData.completename || gData.name || null;
-                    } catch  {
-                        return null;
-                    }
-                }));
-                groupNames = names.filter(Boolean);
+                groupNames = await resolveGroupNames(system, assignedIds, opts);
             }
         } catch  {
         // no crítico: sin grupo asignado o el endpoint no aplica
@@ -706,6 +746,29 @@ async function fetchTicketDetail(system, rawId) {
             // no crítico
             }
         }
+        // 5) Área REAL de quien respondió: el/los grupo(s) a los que pertenece
+        // esa persona en GLPI (Group_User), NO el/los grupo(s) asignados al
+        // ticket. Un ticket puede estar asignado a varias áreas (Redes,
+        // Virtualización, Almacenamiento, etc.) aunque quien contestó sea, por
+        // ejemplo, una sola persona de Mesa de Servicios — que es justo lo que
+        // se veía distinto entre el dashboard y GLPI.
+        let authorGroupNames = [];
+        if (lastFollowup?.users_id) {
+            try {
+                const guRes = await fetch(`${system.baseUrl}/apirest.php/User/${lastFollowup.users_id}/Group_User`, opts);
+                if (guRes.ok) {
+                    const rawGU = await guRes.json();
+                    const guList = Array.isArray(rawGU) ? rawGU : [];
+                    const groupIds = [
+                        ...new Set(guList.map((g)=>g.groups_id).filter(Boolean))
+                    ];
+                    authorGroupNames = await resolveGroupNames(system, groupIds, opts);
+                }
+            } catch  {
+            // no crítico: si no se puede consultar, se deja vacío y el frontend
+            // cae de regreso a mostrar las áreas del ticket.
+            }
+        }
         return {
             ok: true,
             content: stripHtml(ticketRaw.content || ""),
@@ -714,6 +777,7 @@ async function fetchTicketDetail(system, rawId) {
                 date: lastFollowup.date,
                 authorName,
                 groupNames,
+                authorGroupNames,
                 message: stripHtml(lastFollowup.content || ""),
                 isPrivate: !!lastFollowup.is_private
             } : null,
@@ -731,6 +795,63 @@ async function fetchTicketDetail(system, rawId) {
     } finally{
         if (sessionToken) await killSession(system, sessionToken);
     }
+}
+// Trae, para una lista de tickets de UN sistema, la fecha de su primer
+// seguimiento (primera respuesta/escalación de mesa). Se usa solo para el
+// export "tiempos de respuesta" (app/api/report/route.js), NUNCA para el
+// dashboard normal, porque implica una llamada extra por ticket y sería
+// demasiado pesado hacerlo en cada refresco automático.
+// Devuelve un objeto { [rawId]: fechaISOoNull }.
+async function fetchFirstResponseForTickets(system, ticketRawIds) {
+    const result = {};
+    if (!ticketRawIds || ticketRawIds.length === 0) return result;
+    let sessionToken;
+    try {
+        sessionToken = await initSession(system);
+        const headers = {
+            "Session-Token": sessionToken,
+            ...system.appToken ? {
+                "App-Token": system.appToken
+            } : {}
+        };
+        const opts = {
+            method: "GET",
+            headers,
+            cache: "no-store",
+            dispatcher: dispatcherFor(system)
+        };
+        // Un ticket a la vez: GLPI no ofrece una forma simple de traer
+        // seguimientos de varios tickets distintos en una sola llamada.
+        for (const rawId of ticketRawIds){
+            try {
+                const fRes = await fetch(`${system.baseUrl}/apirest.php/Ticket/${rawId}/ITILFollowup?range=0-49`, opts);
+                if (!fRes.ok) {
+                    result[rawId] = null;
+                    continue;
+                }
+                const raw = await fRes.json();
+                const list = Array.isArray(raw) ? raw : [];
+                const earliest = list.reduce((min, f)=>{
+                    const d = new Date((f.date || "").replace(" ", "T"));
+                    if (Number.isNaN(d.getTime())) return min;
+                    if (!min || d < min.date) return {
+                        date: d,
+                        raw: f.date
+                    };
+                    return min;
+                }, null);
+                result[rawId] = earliest?.raw || null;
+            } catch  {
+                result[rawId] = null;
+            }
+        }
+    } catch  {
+    // Sesión no disponible para este sistema: dejamos el mapa vacío, el
+    // caller trata "sin dato" igual que "sin primera respuesta".
+    } finally{
+        if (sessionToken) await killSession(system, sessionToken);
+    }
+    return result;
 }
 ;
 }),

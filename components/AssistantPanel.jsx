@@ -109,8 +109,13 @@ export default function AssistantPanel({ ticket }) {
             {!loadingDetail && detail?.lastFollowup && (
               <div className="flex flex-col gap-1">
                 <div className="flex flex-wrap items-center gap-2 text-xs font-mono text-ink-mid">
-                  <span className="px-1.5 py-0.5 rounded border border-signal-info/40 text-signal-info">
-                    {detail.lastFollowup.groupNames?.length
+                  <span
+                    className="px-1.5 py-0.5 rounded border border-signal-info/40 text-signal-info"
+                    title="Área de la persona que respondió (no necesariamente igual a las áreas asignadas al ticket)"
+                  >
+                    {detail.lastFollowup.authorGroupNames?.length
+                      ? detail.lastFollowup.authorGroupNames.join(", ")
+                      : detail.lastFollowup.groupNames?.length
                       ? detail.lastFollowup.groupNames.join(", ")
                       : "Área no registrada"}
                   </span>
@@ -120,6 +125,11 @@ export default function AssistantPanel({ ticket }) {
                     <span className="text-ink-lo">(nota privada)</span>
                   )}
                 </div>
+                {detail.groupNames?.length > 0 && (
+                  <p className="text-[11px] text-ink-lo font-mono">
+                    Ticket asignado a: {detail.groupNames.join(", ")}
+                  </p>
+                )}
                 <p className="text-sm text-ink-hi font-body leading-relaxed whitespace-pre-wrap max-h-32 overflow-y-auto scrollbar-thin">
                   {detail.lastFollowup.message || "(sin contenido)"}
                 </p>

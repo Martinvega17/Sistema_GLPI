@@ -384,189 +384,141 @@ function categoryForSystemId(systemId) {
 "use strict";
 
 __turbopack_context__.s([
-    "buildDemoResultForSystem",
-    ()=>buildDemoResultForSystem,
     "getDemoResults",
     ()=>getDemoResults,
     "getDemoTicketDetail",
-    ()=>getDemoTicketDetail
+    ()=>getDemoTicketDetail,
+    "getDemoTicketExtras",
+    ()=>getDemoTicketExtras
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$systems$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/systems.js [app-route] (ecmascript)");
 ;
 function hoursAgoIso(h) {
     return new Date(Date.now() - h * 60 * 60 * 1000).toISOString().slice(0, 19).replace("T", " ");
 }
-const STATUS_LABELS = [
-    "",
-    "Nuevo",
-    "En curso (asignado)",
-    "En curso (planificado)",
-    "En espera",
-    "Resuelto",
-    "Cerrado"
-];
-const PRIORITY_LABELS = [
-    "",
-    "Muy baja",
-    "Baja",
-    "Media",
-    "Alta",
-    "Muy alta",
-    "Mayor"
-];
-const ATTENDERS = [
-    "María Guadalupe Leyva Saavedra",
-    "Noe Amable García",
-    "Fernando José Torres Tóvar"
-];
-const AREAS_POOL = [
-    "Mesa de Servicios",
-    "Almacenamiento",
-    "Monitoreo",
-    "Seguridad",
-    "Redes y Telecomunicaciones",
-    "Virtualización"
-];
-// "frH" = horas que tardó mesa en dar la primera respuesta/escalar el
-// ticket, contadas desde su creación. null = todavía sin primera
-// respuesta (el ticket es más nuevo que ese tiempo simulado).
-const TEMPLATES = [
-    {
-        title: "No enciende switch de laboratorio",
-        priorityId: 6,
-        statusId: 2,
-        ageH: 6,
-        frH: 0.5
-    },
-    {
-        title: "Correo institucional no sincroniza",
-        priorityId: 4,
-        statusId: 1,
-        ageH: 30,
-        frH: 3
-    },
-    {
-        title: "Impresora sin tóner - control escolar",
-        priorityId: 2,
-        statusId: 4,
-        ageH: 40,
-        frH: 8
-    },
-    {
-        title: "VPN caída para acceso remoto",
-        priorityId: 5,
-        statusId: 2,
-        ageH: 9,
-        frH: null
-    },
-    {
-        title: "Solicitud de alta de usuario",
-        priorityId: 1,
-        statusId: 1,
-        ageH: 12,
-        frH: 1
-    },
-    {
-        title: "Proyector de aula 4 sin señal",
-        priorityId: 3,
-        statusId: 3,
-        ageH: 50,
-        frH: 20
-    },
-    {
-        title: "Sistema de becas no carga",
-        priorityId: 5,
-        statusId: 1,
-        ageH: 7,
-        frH: 0.2
-    },
-    {
-        title: "Renovación de certificado SSL",
-        priorityId: 4,
-        statusId: 4,
-        ageH: 26,
-        frH: 2
-    },
-    {
-        title: "Solicitud de eliminación de VM",
-        priorityId: 3,
-        statusId: 6,
-        ageH: 60,
-        frH: 4
-    }
-];
-function buildDemoResultForSystem(system, seedIndex = 0) {
-    const tickets = TEMPLATES.filter((_, i)=>(i + seedIndex) % 4 !== 0 || seedIndex === 0).map((t, i)=>{
-        const isSolvedOrClosed = t.statusId >= 5;
-        const isClosed = t.statusId === 6;
-        const attendedBy = ATTENDERS[(i + seedIndex) % ATTENDERS.length];
-        const attendedByAll = [
-            ATTENDERS[(i + seedIndex) % ATTENDERS.length],
-            ATTENDERS[(i + seedIndex + 1) % ATTENDERS.length]
-        ];
-        const resolvedBy = isSolvedOrClosed ? ATTENDERS[(i + seedIndex + 1) % ATTENDERS.length] : null;
-        const areas = [
-            AREAS_POOL[i % AREAS_POOL.length],
-            AREAS_POOL[(i + 2) % AREAS_POOL.length],
-            AREAS_POOL[(i + 4) % AREAS_POOL.length]
-        ];
+function getDemoResults() {
+    // "frH" = horas que tardó mesa en dar la primera respuesta/escalar el
+    // ticket, contadas desde su creación. null = todavía sin primera
+    // respuesta (el ticket es más nuevo que ese tiempo simulado).
+    const templates = [
+        {
+            title: "No enciende switch de laboratorio",
+            priorityId: 6,
+            statusId: 2,
+            ageH: 6,
+            frH: 0.5
+        },
+        {
+            title: "Correo institucional no sincroniza",
+            priorityId: 4,
+            statusId: 1,
+            ageH: 30,
+            frH: 3
+        },
+        {
+            title: "Impresora sin tóner - control escolar",
+            priorityId: 2,
+            statusId: 4,
+            ageH: 40,
+            frH: 8
+        },
+        {
+            title: "VPN caída para acceso remoto",
+            priorityId: 5,
+            statusId: 2,
+            ageH: 9,
+            frH: null
+        },
+        {
+            title: "Solicitud de alta de usuario",
+            priorityId: 1,
+            statusId: 1,
+            ageH: 12,
+            frH: 1
+        },
+        {
+            title: "Proyector de aula 4 sin señal",
+            priorityId: 3,
+            statusId: 3,
+            ageH: 50,
+            frH: 20
+        },
+        {
+            title: "Sistema de becas no carga",
+            priorityId: 5,
+            statusId: 1,
+            ageH: 7,
+            frH: 0.2
+        },
+        {
+            title: "Renovación de certificado SSL",
+            priorityId: 4,
+            statusId: 4,
+            ageH: 26,
+            frH: 2
+        }
+    ];
+    return __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$systems$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["SYSTEMS"].map((system, sIdx)=>{
+        const tickets = templates.filter((_, i)=>(i + sIdx) % __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$systems$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["SYSTEMS"].length !== __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$systems$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["SYSTEMS"].length - 1 || sIdx === 0).map((t, i)=>({
+                id: `${system.id}-demo-${i}`,
+                rawId: 1000 + i,
+                systemId: system.id,
+                systemLabel: system.label,
+                title: t.title,
+                statusId: t.statusId,
+                status: [
+                    "",
+                    "Nuevo",
+                    "En curso (asignado)",
+                    "En curso (planificado)",
+                    "En espera",
+                    "Resuelto",
+                    "Cerrado"
+                ][t.statusId],
+                priorityId: t.priorityId,
+                priority: [
+                    "",
+                    "Muy baja",
+                    "Baja",
+                    "Media",
+                    "Alta",
+                    "Muy alta",
+                    "Mayor"
+                ][t.priorityId],
+                dateCreated: hoursAgoIso(t.ageH),
+                dateModified: hoursAgoIso(Math.max(0, t.ageH - 1)),
+                // Simulación de "primera respuesta de mesa" para el export de
+                // tiempos de respuesta (ver /api/report?metrics=first_response).
+                // Solo existe si frH < ageH (si no, el ticket aún no tendría
+                // respuesta a esta hora).
+                firstResponseAt: t.frH != null && t.ageH > t.frH ? hoursAgoIso(t.ageH - t.frH) : null,
+                requester: null,
+                content: `Descripción de ejemplo: ${t.title}. Reportado por el usuario, pendiente de revisión técnica.`,
+                url: `${system.baseUrl}/front/ticket.form.php?id=${1000 + i}`
+            }));
         return {
-            id: `${system.id}-demo-${i}`,
-            rawId: 1000 + i,
             systemId: system.id,
             systemLabel: system.label,
-            title: t.title,
-            statusId: t.statusId,
-            status: STATUS_LABELS[t.statusId],
-            priorityId: t.priorityId,
-            priority: PRIORITY_LABELS[t.priorityId],
-            dateCreated: hoursAgoIso(t.ageH),
-            dateModified: hoursAgoIso(Math.max(0, t.ageH - 1)),
-            // Simulación de "primera respuesta de mesa" para el export de
-            // tiempos de respuesta (ver /api/report?metrics=first_response).
-            // Solo existe si frH < ageH (si no, el ticket aún no tendría
-            // respuesta a esta hora).
-            firstResponseAt: t.frH != null && t.ageH > t.frH ? hoursAgoIso(t.ageH - t.frH) : null,
-            requester: "usuario.demo",
-            content: `Descripción de ejemplo: ${t.title}. Reportado por el usuario, pendiente de revisión técnica.`,
-            url: `${system.baseUrl || "https://demo.local"}/front/ticket.form.php?id=${1000 + i}`,
-            // --- Campos extra para la tabla detallada por proyecto ---
-            solution: isSolvedOrClosed ? `Se atendió el caso "${t.title}". Se aplicó la solución de ejemplo y se confirmó con el solicitante.` : "",
-            dateSolved: isSolvedOrClosed ? hoursAgoIso(Math.max(0, t.ageH - 3)) : null,
-            dateClosed: isClosed ? hoursAgoIso(Math.max(0, t.ageH - 1)) : null,
-            attendedBy,
-            attendedByAll,
-            resolvedBy,
-            areas,
-            lastFollowupAt: hoursAgoIso(Math.max(0, t.ageH - 1)),
-            lastTechResponseAt: hoursAgoIso(Math.max(0, t.ageH - 1.3))
+            ok: true,
+            tickets,
+            error: null
         };
     });
-    return {
-        systemId: system.id,
-        systemLabel: system.label,
-        ok: true,
-        tickets,
-        error: null
-    };
-}
-function getDemoResults() {
-    return __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$systems$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["SYSTEMS"].map((system, sIdx)=>buildDemoResultForSystem(system, sIdx));
 }
 function getDemoTicketDetail(ticket) {
     return {
         ok: true,
         content: ticket?.content || "Descripción de ejemplo no disponible.",
         // Áreas asignadas al TICKET (pueden ser varias, como en GLPI real).
-        groupNames: ticket?.areas || [
+        groupNames: [
             "Redes y Telecomunicaciones",
             "Virtualización",
             "Almacenamiento"
         ],
         lastFollowup: {
-            date: ticket?.lastFollowupAt || hoursAgoIso(1),
-            authorName: ticket?.attendedBy || "Equipo de Soporte (demo)",
-            groupNames: ticket?.areas || [
+            date: hoursAgoIso(1),
+            authorName: "Equipo de Soporte (demo)",
+            groupNames: [
                 "Redes y Telecomunicaciones",
                 "Virtualización",
                 "Almacenamiento"
@@ -583,6 +535,41 @@ function getDemoTicketDetail(ticket) {
         error: null
     };
 }
+// Extras de ejemplo (Personal que atendió, Áreas asignadas, fechas de
+// solución/cierre, etc.) para la tabla ampliada por sistema, en DEMO_MODE.
+// Determinístico según el rawId, para que no "brinque" en cada refresco.
+const DEMO_STAFF = [
+    "María Guadalupe Leyva",
+    "Noé Amable García",
+    "Ingrid Sayuri Aranda",
+    "Fernando José Torres"
+];
+const DEMO_AREAS = [
+    "Almacenamiento",
+    "Monitoreo",
+    "Seguridad",
+    "Redes y Telecomunicaciones"
+];
+function getDemoTicketExtras(ticket) {
+    const seed = Number(ticket?.rawId) || 0;
+    const closed = ticket?.statusId === 5 || ticket?.statusId === 6;
+    return {
+        solvedDate: closed ? hoursAgoIso(4) : null,
+        closedDate: ticket?.statusId === 6 ? hoursAgoIso(2) : null,
+        solutionText: closed ? `Solución de ejemplo aplicada para: ${ticket?.title || "el ticket"}.` : null,
+        assignedStaff: [
+            DEMO_STAFF[seed % DEMO_STAFF.length],
+            DEMO_STAFF[(seed + 1) % DEMO_STAFF.length]
+        ],
+        groupNames: [
+            DEMO_AREAS[seed % DEMO_AREAS.length]
+        ],
+        lastFollowupDate: hoursAgoIso(1),
+        lastTechFollowupDate: hoursAgoIso(1.5),
+        resolvedByName: closed ? DEMO_STAFF[(seed + 2) % DEMO_STAFF.length] : null,
+        error: null
+    };
+}
 }),
 "[project]/lib/glpiClient.js [app-route] (ecmascript)", ((__turbopack_context__) => {
 "use strict";
@@ -596,6 +583,8 @@ __turbopack_context__.s([
     ()=>fetchFirstResponseForTickets,
     "fetchTicketDetail",
     ()=>fetchTicketDetail,
+    "fetchTicketExtrasBatch",
+    ()=>fetchTicketExtrasBatch,
     "fetchTicketsForSystem",
     ()=>fetchTicketsForSystem,
     "priorityLabel",
@@ -687,6 +676,31 @@ function dispatcherFor(system) {
     }
     return insecureAgent;
 }
+// Todas las llamadas HTTP a un GLPI pasan por esta función en vez de
+// glpiFetch(...) directo: agrega un límite de tiempo. Sin esto, si un GLPI no
+// responde NI rechaza la conexión (la deja "colgada" — típico detrás de un
+// firewall que descarta el paquete en silencio en vez de mandar RST), la
+// petición se queda esperando para siempre y el dashboard se queda pegado
+// en "Conectando con los 5 sistemas…" sin mostrar dato ni error.
+const GLPI_REQUEST_TIMEOUT_MS = 15_000;
+function glpiFetch(url, options = {}) {
+    return fetch(url, {
+        ...options,
+        signal: AbortSignal.timeout(GLPI_REQUEST_TIMEOUT_MS)
+    });
+}
+// Arma un mensaje de error legible a partir de una excepción de glpiFetch.
+// Distingue el caso de timeout (el servidor no respondió a tiempo) de
+// otros errores de red (err.cause trae el motivo real: certificado
+// inválido, DNS, conexión rechazada, etc. — "fetch failed" por sí solo es
+// solo la etiqueta genérica de Node).
+function describeGlpiError(err) {
+    if (err.name === "TimeoutError") {
+        return `sin respuesta después de ${GLPI_REQUEST_TIMEOUT_MS / 1000}s (el servidor no contestó ni rechazó la conexión — revisa firewall/VPN o si el GLPI está caído)`;
+    }
+    const causeMsg = err.cause ? ` — causa: ${err.cause.code || ""} ${err.cause.message || err.cause}`.trim() : "";
+    return (err.message || String(err)) + causeMsg;
+}
 async function initSession(system) {
     const headers = {};
     if (system.appToken) headers["App-Token"] = system.appToken;
@@ -697,7 +711,7 @@ async function initSession(system) {
     } else {
         headers["Authorization"] = "Basic " + Buffer.from(`${system.user}:${system.password}`).toString("base64");
     }
-    const res = await fetch(`${system.baseUrl}/apirest.php/initSession`, {
+    const res = await glpiFetch(`${system.baseUrl}/apirest.php/initSession`, {
         method: "GET",
         headers,
         cache: "no-store",
@@ -712,7 +726,7 @@ async function initSession(system) {
 }
 async function killSession(system, sessionToken) {
     try {
-        await fetch(`${system.baseUrl}/apirest.php/killSession`, {
+        await glpiFetch(`${system.baseUrl}/apirest.php/killSession`, {
             method: "GET",
             headers: {
                 "Session-Token": sessionToken,
@@ -760,7 +774,7 @@ async function fetchTicketsForSystem(system, { rangeSize = 500, maxTickets = 500
         for(;;){
             const url = new URL(`${system.baseUrl}/apirest.php/Ticket`);
             url.searchParams.set("range", `${start}-${start + rangeSize - 1}`);
-            const res = await fetch(url.toString(), {
+            const res = await glpiFetch(url.toString(), {
                 method: "GET",
                 headers,
                 cache: "no-store",
@@ -804,13 +818,12 @@ async function fetchTicketsForSystem(system, { rangeSize = 500, maxTickets = 500
         // err.cause suele traer el motivo real cuando fetch falla a nivel red
         // (certificado SSL inválido/autofirmado, DNS, timeout, etc.) — "fetch
         // failed" solo es la etiqueta genérica de Node.
-        const causeMsg = err.cause ? ` — causa: ${err.cause.code || ""} ${err.cause.message || err.cause}`.trim() : "";
         return {
             systemId: system.id,
             systemLabel: system.label,
             ok: false,
             tickets: [],
-            error: (err.message || String(err)) + causeMsg
+            error: describeGlpiError(err)
         };
     } finally{
         if (sessionToken) await killSession(system, sessionToken);
@@ -836,12 +849,6 @@ function normalizeTicket(t, system) {
         priority: priorityLabel(t.priority),
         dateCreated: t.date,
         dateModified: t.date_mod,
-        // solvedate/closedate vienen directo en el ticket completo, sin
-        // necesidad de una llamada extra — a diferencia de la solución y de
-        // quién atendió/resolvió, que sí requieren ITILFollowup/ITILSolution
-        // (ver fetchTicketDetail más abajo).
-        dateSolved: t.solvedate || null,
-        dateClosed: t.closedate || null,
         requester: t.users_id_recipient || null,
         // Descripción original del ticket (para el resumen del asistente).
         content: stripHtml(t.content || ""),
@@ -865,7 +872,7 @@ async function resolveGroupNames(system, groupIds, opts, debugNotes) {
     if (uniqueIds.length === 0) return [];
     const names = await Promise.all(uniqueIds.map(async (gid)=>{
         try {
-            const gRes = await fetch(`${system.baseUrl}/apirest.php/Group/${gid}`, opts);
+            const gRes = await glpiFetch(`${system.baseUrl}/apirest.php/Group/${gid}`, opts);
             if (!gRes.ok) return {
                 gid,
                 ok: false,
@@ -895,6 +902,210 @@ async function resolveGroupNames(system, groupIds, opts, debugNotes) {
     }
     return names.map((n)=>n.name).filter(Boolean);
 }
+// Ejecuta `worker` sobre cada elemento de `items`, con como máximo
+// `limit` llamadas en paralelo a la vez. Se usa para no abrir demasiadas
+// peticiones simultáneas contra un mismo GLPI cuando se piden los "extras"
+// de varios tickets a la vez (personal que atendió, áreas, etc.).
+async function mapWithConcurrency(items, limit, worker) {
+    const results = new Array(items.length);
+    let next = 0;
+    async function runNext() {
+        const i = next++;
+        if (i >= items.length) return;
+        results[i] = await worker(items[i], i);
+        return runNext();
+    }
+    const runners = Array.from({
+        length: Math.min(limit, items.length)
+    }, runNext);
+    await Promise.all(runners);
+    return results;
+}
+// Trae los datos "extra" (los que NO vienen en el listado básico de
+// tickets) para un lote de tickets de UN mismo sistema, reutilizando una
+// sola sesión de GLPI para todo el lote — así, aunque se pidan los datos de
+// 25 tickets a la vez (una "página" de la tabla), solo se abre 1 sesión en
+// vez de 25. Se llama bajo demanda según lo que el usuario va viendo en
+// pantalla (scroll), nunca para el listado completo de una sola vez.
+//
+// Devuelve un objeto { [rawId]: extras } donde cada "extras" trae:
+//   solvedDate, closedDate        -> fechas de solución/cierre del ticket
+//   solutionText                   -> descripción de la solución (texto plano)
+//   assignedStaff: [nombre, ...]   -> "Personal que atendió" (Ticket_User type=2)
+//   groupNames: [nombre, ...]      -> "Áreas asignadas" (Group_Ticket type=2)
+//   lastFollowupDate               -> "Última retro": fecha del seguimiento
+//                                      más reciente (de cualquier autor)
+//   lastTechFollowupDate           -> "Última respuesta del área técnica":
+//                                      fecha del seguimiento privado (nota
+//                                      interna) más reciente — aproximación,
+//                                      ya que GLPI no marca explícitamente
+//                                      "es del área técnica" en cada seguimiento
+//   resolvedByName                 -> "Personal que resolvió" (autor de la
+//                                      solución más reciente; si no hay
+//                                      solución registrada, cae al último
+//                                      usuario que modificó el ticket)
+async function fetchTicketExtrasBatch(system, rawIds) {
+    const result = {};
+    const uniqueIds = [
+        ...new Set((rawIds || []).filter(Boolean))
+    ];
+    if (uniqueIds.length === 0) return result;
+    let sessionToken;
+    try {
+        sessionToken = await initSession(system);
+        const headers = {
+            "Session-Token": sessionToken,
+            ...system.appToken ? {
+                "App-Token": system.appToken
+            } : {}
+        };
+        const opts = {
+            method: "GET",
+            headers,
+            cache: "no-store",
+            dispatcher: dispatcherFor(system)
+        };
+        // Cache de nombres de usuario dentro de este lote, para no pedir el
+        // mismo /User/{id} varias veces si aparece en varios tickets.
+        const userNameCache = new Map();
+        async function userName(uid) {
+            if (!uid) return null;
+            if (userNameCache.has(uid)) return userNameCache.get(uid);
+            let name = null;
+            try {
+                const uRes = await glpiFetch(`${system.baseUrl}/apirest.php/User/${uid}`, opts);
+                if (uRes.ok) {
+                    const uData = await uRes.json();
+                    name = [
+                        uData.firstname,
+                        uData.realname
+                    ].filter(Boolean).join(" ") || uData.name || null;
+                }
+            } catch  {
+            // no crítico
+            }
+            userNameCache.set(uid, name);
+            return name;
+        }
+        await mapWithConcurrency(uniqueIds, 4, async (rawId)=>{
+            const extras = {
+                solvedDate: null,
+                closedDate: null,
+                solutionText: null,
+                assignedStaff: [],
+                groupNames: [],
+                lastFollowupDate: null,
+                lastTechFollowupDate: null,
+                resolvedByName: null,
+                error: null
+            };
+            try {
+                // Ticket completo: fechas de solución/cierre.
+                const tRes = await glpiFetch(`${system.baseUrl}/apirest.php/Ticket/${rawId}`, opts);
+                let ticketRaw = null;
+                if (tRes.ok) {
+                    ticketRaw = await tRes.json();
+                    extras.solvedDate = ticketRaw.solvedate || null;
+                    extras.closedDate = ticketRaw.closedate || null;
+                }
+                // Seguimientos: última retro (cualquiera) y última respuesta
+                // "técnica" (nota privada/interna, como aproximación).
+                try {
+                    const fRes = await glpiFetch(`${system.baseUrl}/apirest.php/Ticket/${rawId}/ITILFollowup?range=0-49`, opts);
+                    if (fRes.ok) {
+                        const raw = await fRes.json();
+                        const list = Array.isArray(raw) ? raw : [];
+                        list.sort((a, b)=>new Date((b.date || "").replace(" ", "T")) - new Date((a.date || "").replace(" ", "T")));
+                        extras.lastFollowupDate = list[0]?.date || null;
+                        const lastTech = list.find((f)=>f.is_private);
+                        extras.lastTechFollowupDate = lastTech?.date || null;
+                    }
+                } catch  {
+                // sin seguimientos disponibles
+                }
+                // Áreas asignadas (grupo, type=2 = asignado; ver comentario más
+                // abajo en fetchTicketDetail sobre por qué se usa Number(...)).
+                try {
+                    const gtRes = await glpiFetch(`${system.baseUrl}/apirest.php/Ticket/${rawId}/Group_Ticket`, opts);
+                    if (gtRes.ok) {
+                        const rawGroups = await gtRes.json();
+                        const groupList = Array.isArray(rawGroups) ? rawGroups : [];
+                        let assignedIds = [
+                            ...new Set(groupList.filter((g)=>Number(g.type) === 2).map((g)=>g.groups_id).filter(Boolean))
+                        ];
+                        if (assignedIds.length === 0) {
+                            assignedIds = [
+                                ...new Set(groupList.map((g)=>g.groups_id).filter(Boolean))
+                            ];
+                        }
+                        extras.groupNames = await resolveGroupNames(system, assignedIds, opts);
+                    }
+                } catch  {
+                // sin grupo disponible
+                }
+                // Personal que atendió: usuarios asignados al ticket (Ticket_User
+                // type=2 = asignado; type=1 = solicitante, type=3 = observador).
+                try {
+                    const tuRes = await glpiFetch(`${system.baseUrl}/apirest.php/Ticket/${rawId}/Ticket_User`, opts);
+                    if (tuRes.ok) {
+                        const rawTU = await tuRes.json();
+                        const tuList = Array.isArray(rawTU) ? rawTU : [];
+                        const assignedUserIds = [
+                            ...new Set(tuList.filter((u)=>Number(u.type) === 2).map((u)=>u.users_id).filter(Boolean))
+                        ];
+                        const names = await Promise.all(assignedUserIds.map(userName));
+                        extras.assignedStaff = names.filter(Boolean);
+                    }
+                } catch  {
+                // sin personal asignado disponible
+                }
+                // Solución: descripción + quién la escribió ("personal que resolvió").
+                try {
+                    const solRes = await glpiFetch(`${system.baseUrl}/apirest.php/Ticket/${rawId}/ITILSolution`, opts);
+                    if (solRes.ok) {
+                        const rawSol = await solRes.json();
+                        const solList = Array.isArray(rawSol) ? rawSol : [];
+                        solList.sort((a, b)=>new Date((b.date_creation || "").replace(" ", "T")) - new Date((a.date_creation || "").replace(" ", "T")));
+                        const latest = solList[0];
+                        if (latest) {
+                            extras.solutionText = stripHtml(latest.content || "");
+                            extras.resolvedByName = await userName(latest.users_id);
+                        }
+                    }
+                } catch  {
+                // sin solución disponible
+                }
+                // Respaldo si no hay ITILSolution: último usuario que modificó el
+                // ticket, como aproximación de quién lo resolvió.
+                if (!extras.resolvedByName && ticketRaw?.users_id_lastupdater) {
+                    extras.resolvedByName = await userName(ticketRaw.users_id_lastupdater);
+                }
+            } catch (err) {
+                extras.error = describeGlpiError(err);
+            }
+            result[rawId] = extras;
+        });
+    } catch (err) {
+        // Sesión no disponible para este sistema: dejamos el mapa vacío para
+        // los rawIds pedidos, el caller trata "sin dato" igual que "sin extras".
+        for (const rawId of uniqueIds){
+            result[rawId] = result[rawId] || {
+                solvedDate: null,
+                closedDate: null,
+                solutionText: null,
+                assignedStaff: [],
+                groupNames: [],
+                lastFollowupDate: null,
+                lastTechFollowupDate: null,
+                resolvedByName: null,
+                error: describeGlpiError(err)
+            };
+        }
+    } finally{
+        if (sessionToken) await killSession(system, sessionToken);
+    }
+    return result;
+}
 async function fetchTicketDetail(system, rawId) {
     let sessionToken;
     // Registra qué paso falló y por qué (status HTTP / excepción), para poder
@@ -917,7 +1128,7 @@ async function fetchTicketDetail(system, rawId) {
             dispatcher: dispatcherFor(system)
         };
         // 1) Ticket completo, para la descripción original.
-        const ticketRes = await fetch(`${system.baseUrl}/apirest.php/Ticket/${rawId}`, opts);
+        const ticketRes = await glpiFetch(`${system.baseUrl}/apirest.php/Ticket/${rawId}`, opts);
         if (!ticketRes.ok) {
             const body = await ticketRes.text().catch(()=>"");
             throw new Error(`[${system.label}] GET Ticket/${rawId} falló (${ticketRes.status}): ${body.slice(0, 300)}`);
@@ -931,7 +1142,7 @@ async function fetchTicketDetail(system, rawId) {
         // Ordenamos nosotros por fecha, más reciente primero.
         let followups = [];
         try {
-            const fRes = await fetch(`${system.baseUrl}/apirest.php/Ticket/${rawId}/ITILFollowup?range=0-49`, opts);
+            const fRes = await glpiFetch(`${system.baseUrl}/apirest.php/Ticket/${rawId}/ITILFollowup?range=0-49`, opts);
             if (fRes.ok) {
                 const raw = await fRes.json();
                 if (Array.isArray(raw)) {
@@ -949,7 +1160,7 @@ async function fetchTicketDetail(system, rawId) {
                 // instancia es una versión de GLPI anterior a la que renombró el
                 // subitem a ITILFollowup.
                 try {
-                    const legacyRes = await fetch(`${system.baseUrl}/apirest.php/Ticket/${rawId}/TicketFollowup?range=0-49`, opts);
+                    const legacyRes = await glpiFetch(`${system.baseUrl}/apirest.php/Ticket/${rawId}/TicketFollowup?range=0-49`, opts);
                     if (legacyRes.ok) {
                         const legacyRaw = await legacyRes.json();
                         if (Array.isArray(legacyRaw) && legacyRaw.length > 0) {
@@ -973,7 +1184,7 @@ async function fetchTicketDetail(system, rawId) {
         // número 2 fallaría en silencio, dejando "área" vacía siempre.
         let groupNames = [];
         try {
-            const gtRes = await fetch(`${system.baseUrl}/apirest.php/Ticket/${rawId}/Group_Ticket`, opts);
+            const gtRes = await glpiFetch(`${system.baseUrl}/apirest.php/Ticket/${rawId}/Group_Ticket`, opts);
             if (gtRes.ok) {
                 const rawGroups = await gtRes.json();
                 const groupList = Array.isArray(rawGroups) ? rawGroups : [];
@@ -1005,7 +1216,7 @@ async function fetchTicketDetail(system, rawId) {
         let authorName = null;
         if (lastFollowup?.users_id) {
             try {
-                const uRes = await fetch(`${system.baseUrl}/apirest.php/User/${lastFollowup.users_id}`, opts);
+                const uRes = await glpiFetch(`${system.baseUrl}/apirest.php/User/${lastFollowup.users_id}`, opts);
                 if (uRes.ok) {
                     const uData = await uRes.json();
                     authorName = [
@@ -1017,34 +1228,6 @@ async function fetchTicketDetail(system, rawId) {
             // no crítico
             }
         }
-        // 4b) TODAS las personas que dieron seguimiento al ticket (para la
-        // columna "Personal que atendió", que puede mostrar varios nombres —
-        // igual que en GLPI cuando distintos técnicos van dejando seguimientos).
-        // Se limita a MAX_ATTENDERS autores únicos para no disparar una llamada
-        // a User por cada seguimiento en tickets con historial muy largo.
-        const MAX_ATTENDERS = 8;
-        let attendedByAll = [];
-        try {
-            const uniqueAuthorIds = [
-                ...new Set(followups.map((f)=>f.users_id).filter(Boolean))
-            ].slice(0, MAX_ATTENDERS);
-            attendedByAll = (await Promise.all(uniqueAuthorIds.map(async (uid)=>{
-                if (uid === lastFollowup?.users_id && authorName) return authorName;
-                try {
-                    const uRes = await fetch(`${system.baseUrl}/apirest.php/User/${uid}`, opts);
-                    if (!uRes.ok) return null;
-                    const uData = await uRes.json();
-                    return [
-                        uData.firstname,
-                        uData.realname
-                    ].filter(Boolean).join(" ") || uData.name || null;
-                } catch  {
-                    return null;
-                }
-            }))).filter(Boolean);
-        } catch (e) {
-            debugNotes.push(`Resolución de 'personal que atendió' lanzó excepción: ${e.message || e}`);
-        }
         // 5) Área REAL de quien respondió: el/los grupo(s) a los que pertenece
         // esa persona en GLPI (Group_User), NO el/los grupo(s) asignados al
         // ticket. Un ticket puede estar asignado a varias áreas (Redes,
@@ -1054,7 +1237,7 @@ async function fetchTicketDetail(system, rawId) {
         let authorGroupNames = [];
         if (lastFollowup?.users_id) {
             try {
-                const guRes = await fetch(`${system.baseUrl}/apirest.php/User/${lastFollowup.users_id}/Group_User`, opts);
+                const guRes = await glpiFetch(`${system.baseUrl}/apirest.php/User/${lastFollowup.users_id}/Group_User`, opts);
                 if (guRes.ok) {
                     const rawGU = await guRes.json();
                     const guList = Array.isArray(rawGU) ? rawGU : [];
@@ -1074,64 +1257,10 @@ async function fetchTicketDetail(system, rawId) {
         } else {
             debugNotes.push("El último seguimiento no tiene users_id (autor vacío/anónimo) — no se puede buscar su grupo");
         }
-        // 6) Solución (ITILSolution): texto de la solución y quién la registró
-        // ("personal que resolvió"). closedate/solvedate SÍ vienen directo en el
-        // ticket completo (ticketRaw), sin necesidad de otra llamada.
-        let solutionText = "";
-        let resolvedByName = null;
-        try {
-            const solRes = await fetch(`${system.baseUrl}/apirest.php/Ticket/${rawId}/ITILSolution?range=0-4`, opts);
-            if (solRes.ok) {
-                const rawSol = await solRes.json();
-                const solList = Array.isArray(rawSol) ? rawSol : [];
-                // Más reciente primero: la última solución registrada es la vigente.
-                solList.sort((a, b)=>new Date((b.date_creation || "").replace(" ", "T")) - new Date((a.date_creation || "").replace(" ", "T")));
-                const lastSolution = solList[0] || null;
-                if (lastSolution) {
-                    solutionText = stripHtml(lastSolution.content || "");
-                    if (lastSolution.users_id_editor || lastSolution.users_id) {
-                        const solUserId = lastSolution.users_id_editor || lastSolution.users_id;
-                        try {
-                            const suRes = await fetch(`${system.baseUrl}/apirest.php/User/${solUserId}`, opts);
-                            if (suRes.ok) {
-                                const suData = await suRes.json();
-                                resolvedByName = [
-                                    suData.firstname,
-                                    suData.realname
-                                ].filter(Boolean).join(" ") || suData.name || null;
-                            }
-                        } catch  {
-                        // no crítico
-                        }
-                    }
-                } else {
-                    debugNotes.push(`ITILSolution: respuesta OK pero 0 soluciones registradas para el ticket ${rawId}`);
-                }
-            } else {
-                debugNotes.push(`ITILSolution respondió HTTP ${solRes.status} (probable falta de permiso, o el ticket no tiene solución)`);
-            }
-        } catch (e) {
-            debugNotes.push(`ITILSolution lanzó excepción: ${e.message || e}`);
-        }
-        // 7) "Última respuesta del área técnica" = último seguimiento PÚBLICO
-        // (no privado), distinto de "Última retro" que es el último seguimiento
-        // sin importar si es público o una nota interna.
-        const lastPublicFollowup = followups.find((f)=>!f.is_private) || null;
         return {
             ok: true,
             content: stripHtml(ticketRaw.content || ""),
             groupNames,
-            areas: groupNames,
-            dateSolved: ticketRaw.solvedate || null,
-            dateClosed: ticketRaw.closedate || null,
-            solution: solutionText,
-            attendedBy: authorName,
-            attendedByAll: attendedByAll.length > 0 ? attendedByAll : authorName ? [
-                authorName
-            ] : [],
-            resolvedBy: resolvedByName,
-            lastFollowupAt: lastFollowup?.date || null,
-            lastTechResponseAt: lastPublicFollowup?.date || null,
             lastFollowup: lastFollowup ? {
                 date: lastFollowup.date,
                 authorName,
@@ -1144,22 +1273,12 @@ async function fetchTicketDetail(system, rawId) {
             debugNotes
         };
     } catch (err) {
-        const causeMsg = err.cause ? ` — causa: ${err.cause.code || ""} ${err.cause.message || err.cause}`.trim() : "";
         return {
             ok: false,
             content: null,
             groupNames: [],
-            areas: [],
-            dateSolved: null,
-            dateClosed: null,
-            solution: "",
-            attendedBy: null,
-            attendedByAll: [],
-            resolvedBy: null,
-            lastFollowupAt: null,
-            lastTechResponseAt: null,
             lastFollowup: null,
-            error: (err.message || String(err)) + causeMsg,
+            error: describeGlpiError(err),
             debugNotes
         };
     } finally{
@@ -1194,7 +1313,7 @@ async function fetchFirstResponseForTickets(system, ticketRawIds) {
         // seguimientos de varios tickets distintos en una sola llamada.
         for (const rawId of ticketRawIds){
             try {
-                const fRes = await fetch(`${system.baseUrl}/apirest.php/Ticket/${rawId}/ITILFollowup?range=0-49`, opts);
+                const fRes = await glpiFetch(`${system.baseUrl}/apirest.php/Ticket/${rawId}/ITILFollowup?range=0-49`, opts);
                 if (!fRes.ok) {
                     result[rawId] = null;
                     continue;
@@ -1452,11 +1571,9 @@ __turbopack_context__.s([
     "DEMO_MODE",
     ()=>DEMO_MODE,
     "SYSTEMS",
-    ()=>SYSTEMS,
-    "isSystemDemo",
-    ()=>isSystemDemo
+    ()=>SYSTEMS
 ]);
-// Configuración de las instancias GLPI.
+// Configuración de los 5 sistemas GLPI.
 // Cada instancia se define por variables de entorno para no hardcodear credenciales.
 // Ver .env.example para el formato completo.
 function envOr(name, fallback) {
@@ -1487,7 +1604,7 @@ const SYSTEMS = [
     },
     {
         id: "prepa",
-        label: "Prepa en Línea",
+        label: "Prepa",
         baseUrl: envOr("GLPI_PREPA_URL", "https://opcenter-prepa.cns-ipicyt.mx"),
         appToken: process.env.GLPI_PREPA_APP_TOKEN || "",
         userToken: process.env.GLPI_PREPA_USER_TOKEN || "",
@@ -1514,23 +1631,8 @@ const SYSTEMS = [
         user: process.env.GLPI_MUJERES_USER || process.env.GLPI_USER || "",
         password: process.env.GLPI_MUJERES_PASSWORD || process.env.GLPI_PASSWORD || "",
         insecureTLS: envOr("GLPI_MUJERES_INSECURE_TLS", "false") === "true"
-    },
-    {
-        id: "imss",
-        label: "IMSS",
-        baseUrl: envOr("GLPI_IMSS_URL", ""),
-        appToken: process.env.GLPI_IMSS_APP_TOKEN || "",
-        userToken: process.env.GLPI_IMSS_USER_TOKEN || "",
-        user: process.env.GLPI_IMSS_USER || process.env.GLPI_USER || "",
-        password: process.env.GLPI_IMSS_PASSWORD || process.env.GLPI_PASSWORD || "",
-        insecureTLS: envOr("GLPI_IMSS_INSECURE_TLS", "false") === "true"
     }
 ];
-function isSystemDemo(system) {
-    if (DEMO_MODE) return true;
-    if (!system.baseUrl) return true;
-    return false;
-}
 }),
 "[project]/lib/ticketEnrichment.js [app-route] (ecmascript)", ((__turbopack_context__) => {
 "use strict";

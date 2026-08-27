@@ -9,7 +9,7 @@ function formatDate(dateStr) {
   return d.toLocaleString("es-MX");
 }
 
-export default function AssistantPanel({ ticket }) {
+export default function AssistantPanel({ ticket, onClose }) {
   const [suggestion, setSuggestion] = useState(null);
   const [loadingSuggestion, setLoadingSuggestion] = useState(false);
   const [detail, setDetail] = useState(null);
@@ -61,7 +61,18 @@ export default function AssistantPanel({ ticket }) {
 
   return (
     <div className="rounded-lg border border-line bg-base-900 shadow-panel p-4 flex flex-col gap-3">
-      <div className="text-xs uppercase tracking-wider text-ink-lo font-body">Asistente de atención</div>
+      <div className="flex items-center justify-between">
+        <div className="text-xs uppercase tracking-wider text-ink-lo font-body">Asistente de atención</div>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="text-ink-lo hover:text-ink-hi text-sm leading-none px-1"
+            aria-label="Cerrar panel"
+          >
+            ✕
+          </button>
+        )}
+      </div>
 
       {!ticket && (
         <p className="text-ink-mid text-sm font-body">

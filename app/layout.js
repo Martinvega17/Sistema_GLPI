@@ -1,10 +1,8 @@
-import { Suspense } from "react";
 import "./globals.css";
-import AppShell from "@/components/AppShell";
 
 export const metadata = {
   title: "Ops · Tickets CNS-IPICYT",
-  description: "Monitoreo en vivo de los sistemas GLPI (IMSS, CNS, UnADM, Prepa, SECIHTI, Mujeres)",
+  description: "Monitoreo en vivo de los 5 sistemas GLPI (CNS, UnADM, Prepa, SECIHTI, Mujeres)",
 };
 
 export default function RootLayout({ children }) {
@@ -17,14 +15,7 @@ export default function RootLayout({ children }) {
           app esté bien. Esto solo silencia ESE warning específico de
           atributos en este nodo; no oculta errores reales de hidratación
           en el resto del árbol. */}
-      <body className="font-body bg-base-950 text-ink-hi min-h-screen">
-        {/* Suspense: AppShell -> Sidebar usa useSearchParams (para saber si
-            el enlace activo es "Tickets" o "Pendientes"), y Next.js exige
-            que ese hook esté dentro de un límite de Suspense. */}
-        <Suspense fallback={null}>
-          <AppShell>{children}</AppShell>
-        </Suspense>
-      </body>
+      <body className="font-body bg-base-950 text-ink-hi min-h-screen">{children}</body>
     </html>
   );
 }

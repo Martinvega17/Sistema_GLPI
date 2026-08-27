@@ -1,167 +1,89 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
-import { CATEGORIES } from "@/lib/categories";
+import { useState } from "react";
 
-const ACCENT_TEXT = {
-  green: "text-signal-ok",
-  blue: "text-signal-info",
-  amber: "text-amber-400",
-  pink: "text-pink-400",
-  cyan: "text-cyan-400",
-  rose: "text-rose-400",
+const SYSTEM_INITIAL = {
+  cns: "C",
+  unadm: "U",
+  prepa: "P",
+  secihti: "S",
+  mujeres: "M",
 };
 
-// Ítems de cada sección del menú. Ambos apuntan a la misma ruta
-// (/proyecto/[id]) que ya trae la tabla completa de tickets del sistema;
-// "Pendientes" solo agrega ?estado=pendientes para que la vista abra
-// filtrada en "Abiertos" en vez de "Todos" (ver app/proyecto/[category]/page.js).
-function subItemsFor(categoryId) {
-  return [
-    { key: "tickets", label: "Tickets", href: `/proyecto/${categoryId}` },
-    { key: "pendientes", label: "Pendientes", href: `/proyecto/${categoryId}?estado=pendientes` },
-  ];
-}
-
-export default function Sidebar({ collapsed, mobileOpen, onCloseMobile }) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const [openGroups, setOpenGroups] = useState(() => new Set());
-
-  // Si estoy parado en /proyecto/[id], abre automáticamente ese grupo para
-  // que el usuario vea de inmediato en qué sección está.
-  useEffect(() => {
-    const match = pathname?.match(/^\/proyecto\/([^/]+)/);
-    if (match) {
-      setOpenGroups((prev) => new Set(prev).add(match[1]));
-    }
-  }, [pathname]);
-
-  function toggleGroup(id) {
-    setOpenGroups((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
-
-  function isActive(href) {
-    const [hrefPath, hrefQuery] = href.split("?");
-    if (pathname !== hrefPath) return false;
-    const currentEstado = searchParams.get("estado") || "";
-    const hrefEstado = new URLSearchParams(hrefQuery || "").get("estado") || "";
-    return currentEstado === hrefEstado;
-  }
+export default function Sidebar({ systems, activeView, onNavigate, toastCount }) {
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <>
-      {/* Fondo oscuro detrás del menú en móvil, para cerrarlo tocando fuera */}
-      {mobileOpen && (
-        <div
-          className="fixed inset-0 bg-black/60 z-30 md:hidden"
-          onClick={onCloseMobile}
-        />
-      )}
+    <aside
+      className={`shrink-0 border-r border-line bg-base-900 flex flex-col transition-[width] duration-200 ${
+        collapsed ? "w-[76px]" : "w-64"
+      }`}
+    >
+      <div className="h-16 flex items-center justify-between px-4 border-b border-line">
+        {!collapsed && <span className="font-display font-bold text-ink-hi">Ops · GLPI</span>}
+        <button
+          onClick={() => setCollapsed((c) => !c)}
+          className="text-ink-mid hover:text-ink-hi p-1.5 rounded-md hover:bg-base-800 transition-colors"
+          aria-label={collapsed ? "Expandir barra lateral" : "Colapsar barra lateral"}
+          title={collapsed ? "Expandir" : "Colapsar"}
+        >
+          ☰
+        </button>
+      </div>
 
-      <aside
-        className={`
-          fixed md:sticky top-0 left-0 h-screen z-40 shrink-0
-          bg-base-900 border-r border-line flex flex-col
-          transition-transform md:transition-[width] duration-200
-          ${collapsed ? "md:w-16" : "md:w-64"} w-64
-          ${mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
-        `}
-      >
-        <div className="h-16 flex items-center gap-2 px-4 border-b border-line shrink-0">
-          <span className="text-signal-info text-lg">☰</span>
-          {!collapsed && (
-            <span className="font-display font-bold text-ink-hi truncate">Manager GLPI</span>
-          )}
+      <nav className="flex-1 overflow-y-auto scrollbar-thin py-3 px-2 flex flex-col gap-1">
+        <button
+          onClick={() => onNavigate("inicio")}
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-body font-medium transition-colors ${
+            activeView === "inicio"
+              ? "bg-signal-warn/15 text-signal-warn border border-signal-warn/40"
+              : "text-ink-mid hover:text-ink-hi hover:bg-base-800 border border-transparent"
+          }`}
+        >
+          <span className="text-base">🏠</span>
+          {!collapsed && <span>Inicio</span>}
+        </button>
+
+        <div className={`mt-3 mb-1 px-3 text-[10px] uppercase tracking-wider text-ink-lo ${collapsed ? "text-center" : ""}`}>
+          {collapsed ? "—" : "Sistemas"}
         </div>
 
-        <nav className="flex-1 overflow-y-auto scrollbar-thin py-2">
-          <Link
-            href="/"
-            onClick={onCloseMobile}
-            className={`flex items-center gap-3 px-4 py-2.5 text-sm font-body transition-colors ${
-              pathname === "/"
-                ? "text-ink-hi bg-base-800"
-                : "text-ink-mid hover:text-ink-hi hover:bg-base-800/60"
-            }`}
-          >
-            <span className="text-base">🏠</span>
-            {!collapsed && <span>Inicio</span>}
-          </Link>
+        {systems.map((sys) => {
+          const isActive = activeView === sys.id;
+          const summary = sys.summary;
+          return (
+            <button
+              key={sys.id}
+              onClick={() => onNavigate(sys.id)}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-body font-medium transition-colors ${
+                isActive
+                  ? "bg-base-800 text-ink-hi border border-signal-info/40"
+                  : "text-ink-mid hover:text-ink-hi hover:bg-base-800 border border-transparent"
+              }`}
+              title={sys.label}
+            >
+              <span className="h-6 w-6 rounded-full bg-base-700 flex items-center justify-center text-[11px] font-mono shrink-0">
+                {SYSTEM_INITIAL[sys.id] || sys.label[0]}
+              </span>
+              {!collapsed && (
+                <span className="flex-1 text-left truncate">{sys.label}</span>
+              )}
+              {!collapsed && summary != null && (
+                <span className="text-[11px] font-mono text-ink-lo">{summary}</span>
+              )}
+            </button>
+          );
+        })}
+      </nav>
 
-          <Link
-            href="/tickets"
-            onClick={onCloseMobile}
-            className={`flex items-center gap-3 px-4 py-2.5 text-sm font-body transition-colors ${
-              pathname === "/tickets"
-                ? "text-ink-hi bg-base-800"
-                : "text-ink-mid hover:text-ink-hi hover:bg-base-800/60"
-            }`}
-          >
-            <span className="text-base">🗂️</span>
-            {!collapsed && <span>Todos los tickets</span>}
-          </Link>
-
-          <div className="my-2 border-t border-line" />
-
-          {CATEGORIES.map((category) => {
-            const isOpen = openGroups.has(category.id);
-            return (
-              <div key={category.id}>
-                <button
-                  type="button"
-                  onClick={() => toggleGroup(category.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-body transition-colors ${
-                    ACCENT_TEXT[category.accent] || "text-ink-mid"
-                  } hover:bg-base-800/60`}
-                  title={category.label}
-                >
-                  <span className="text-base shrink-0">{category.icon}</span>
-                  {!collapsed && (
-                    <>
-                      <span className="font-display font-semibold flex-1 text-left truncate">
-                        {category.label}
-                      </span>
-                      <span
-                        className={`text-xs text-ink-lo transition-transform ${isOpen ? "rotate-180" : ""}`}
-                      >
-                        ▾
-                      </span>
-                    </>
-                  )}
-                </button>
-
-                {!collapsed && isOpen && (
-                  <div className="pb-1">
-                    {subItemsFor(category.id).map((item) => (
-                      <Link
-                        key={item.key}
-                        href={item.href}
-                        onClick={onCloseMobile}
-                        className={`flex items-center gap-2 pl-11 pr-4 py-2 text-sm font-body transition-colors ${
-                          isActive(item.href)
-                            ? "text-ink-hi bg-base-800"
-                            : "text-ink-mid hover:text-ink-hi hover:bg-base-800/40"
-                        }`}
-                      >
-                        <span className="h-1.5 w-1.5 rounded-full bg-current opacity-60" />
-                        {item.label}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </nav>
-      </aside>
-    </>
+      {!collapsed && (
+        <div className="border-t border-line p-3 flex items-center justify-between">
+          <span className="text-[11px] text-ink-lo font-mono">🔔 {toastCount || 0}</span>
+          <span className="h-7 w-7 rounded-full bg-signal-info/20 text-signal-info flex items-center justify-center text-[11px] font-mono font-semibold">
+            CT
+          </span>
+        </div>
+      )}
+    </aside>
   );
 }

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { fetchAllSystemResults } from "@/lib/ticketSource";
+import { SYSTEMS, DEMO_MODE } from "@/lib/systems";
+import { fetchTicketsForSystem } from "@/lib/glpiClient";
+import { getDemoResults } from "@/lib/demoData";
 import { summarize } from "@/lib/sla";
 
 export const dynamic = "force-dynamic";
@@ -9,7 +11,9 @@ export const dynamic = "force-dynamic";
 // ALERT_WEBHOOK_URL, manda un resumen a Slack/Discord/Teams (formato
 // compatible con webhooks de "incoming webhook" que aceptan { text }).
 export async function GET() {
-  const results = await fetchAllSystemResults();
+  const results = DEMO_MODE
+    ? getDemoResults()
+    : await Promise.all(SYSTEMS.map((s) => fetchTicketsForSystem(s)));
 
   const allTickets = results.flatMap((r) => r.tickets);
   const { tickets, totals } = summarize(allTickets);

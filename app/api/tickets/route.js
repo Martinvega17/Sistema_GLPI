@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
-import { DEMO_MODE } from "@/lib/systems";
-import { fetchAllSystemResults } from "@/lib/ticketSource";
+import { SYSTEMS, DEMO_MODE } from "@/lib/systems";
+import { fetchTicketsForSystem } from "@/lib/glpiClient";
+import { getDemoResults } from "@/lib/demoData";
 import { summarize } from "@/lib/sla";
 
 export const dynamic = "force-dynamic"; // nunca cachear: esto es lo que da el "tiempo real"
 
 export async function GET() {
-  const results = await fetchAllSystemResults();
+  const results = DEMO_MODE
+    ? getDemoResults()
+    : await Promise.all(SYSTEMS.map((s) => fetchTicketsForSystem(s)));
 
   const allTickets = results.flatMap((r) => r.tickets);
   const errors = results.filter((r) => !r.ok).map((r) => ({ system: r.systemLabel, error: r.error }));

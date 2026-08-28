@@ -1195,162 +1195,129 @@ __turbopack_context__.s([
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react-jsx-dev-runtime.js [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/image.js [app-ssr] (ecmascript)"); // Si usas Next.js
+(()=>{
+    const e = new Error("Cannot find module '@/public/icons/cns.png'");
+    e.code = 'MODULE_NOT_FOUND';
+    throw e;
+})();
+(()=>{
+    const e = new Error("Cannot find module '@/public/icons/unadm.png'");
+    e.code = 'MODULE_NOT_FOUND';
+    throw e;
+})();
+(()=>{
+    const e = new Error("Cannot find module '@/public/icons/prepa.png'");
+    e.code = 'MODULE_NOT_FOUND';
+    throw e;
+})();
+(()=>{
+    const e = new Error("Cannot find module '@/public/icons/secihti.png'");
+    e.code = 'MODULE_NOT_FOUND';
+    throw e;
+})();
+(()=>{
+    const e = new Error("Cannot find module '@/public/icons/mujeres.png'");
+    e.code = 'MODULE_NOT_FOUND';
+    throw e;
+})();
 "use client";
 ;
 ;
-const SYSTEM_INITIAL = {
-    cns: "C",
-    unadm: "U",
-    prepa: "P",
-    secihti: "S",
-    mujeres: "M"
+;
+;
+;
+;
+;
+;
+const SYSTEM_ICONS = {
+    cns: cnsIcon,
+    unadm: unadmIcon,
+    prepa: prepaIcon,
+    secihti: secihtiIcon,
+    mujeres: mujeresIcon
 };
 function Sidebar({ systems, activeView, onNavigate, toastCount }) {
     const [collapsed, setCollapsed] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("aside", {
         className: `shrink-0 border-r border-line bg-base-900 flex flex-col transition-[width] duration-200 ${collapsed ? "w-[76px]" : "w-64"}`,
-        children: [
-            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "h-16 flex items-center justify-between px-4 border-b border-line",
-                children: [
-                    !collapsed && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                        className: "font-display font-bold text-ink-hi",
-                        children: "Ops · GLPI"
-                    }, void 0, false, {
-                        fileName: "[project]/components/Sidebar.jsx",
-                        lineNumber: 23,
-                        columnNumber: 24
-                    }, this),
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                        onClick: ()=>setCollapsed((c)=>!c),
-                        className: "text-ink-mid hover:text-ink-hi p-1.5 rounded-md hover:bg-base-800 transition-colors",
-                        "aria-label": collapsed ? "Expandir barra lateral" : "Colapsar barra lateral",
-                        title: collapsed ? "Expandir" : "Colapsar",
-                        children: "☰"
-                    }, void 0, false, {
-                        fileName: "[project]/components/Sidebar.jsx",
-                        lineNumber: 24,
-                        columnNumber: 9
-                    }, this)
-                ]
-            }, void 0, true, {
-                fileName: "[project]/components/Sidebar.jsx",
-                lineNumber: 22,
-                columnNumber: 7
-            }, this),
-            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("nav", {
-                className: "flex-1 overflow-y-auto scrollbar-thin py-3 px-2 flex flex-col gap-1",
-                children: [
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                        onClick: ()=>onNavigate("inicio"),
-                        className: `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-body font-medium transition-colors ${activeView === "inicio" ? "bg-signal-warn/15 text-signal-warn border border-signal-warn/40" : "text-ink-mid hover:text-ink-hi hover:bg-base-800 border border-transparent"}`,
+        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("nav", {
+            className: "flex-1 overflow-y-auto scrollbar-thin py-3 px-2 flex flex-col gap-1",
+            children: [
+                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    className: `mt-3 mb-1 px-3 text-[10px] uppercase tracking-wider text-ink-lo ${collapsed ? "text-center" : ""}`,
+                    children: collapsed ? "—" : "Sistemas"
+                }, void 0, false, {
+                    fileName: "[project]/components/Sidebar.jsx",
+                    lineNumber: 35,
+                    columnNumber: 9
+                }, this),
+                systems.map((sys)=>{
+                    const isActive = activeView === sys.id;
+                    const summary = sys.summary;
+                    const icon = SYSTEM_ICONS[sys.id];
+                    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                        onClick: ()=>onNavigate(sys.id),
+                        className: `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-body font-medium transition-colors ${isActive ? "bg-base-800 text-ink-hi border border-signal-info/40" : "text-ink-mid hover:text-ink-hi hover:bg-base-800 border border-transparent"}`,
+                        title: sys.label,
                         children: [
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                className: "text-base",
-                                children: "🏠"
-                            }, void 0, false, {
-                                fileName: "[project]/components/Sidebar.jsx",
-                                lineNumber: 43,
-                                columnNumber: 11
-                            }, this),
-                            !collapsed && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                children: "Inicio"
-                            }, void 0, false, {
-                                fileName: "[project]/components/Sidebar.jsx",
-                                lineNumber: 44,
-                                columnNumber: 26
-                            }, this)
-                        ]
-                    }, void 0, true, {
-                        fileName: "[project]/components/Sidebar.jsx",
-                        lineNumber: 35,
-                        columnNumber: 9
-                    }, this),
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: `mt-3 mb-1 px-3 text-[10px] uppercase tracking-wider text-ink-lo ${collapsed ? "text-center" : ""}`,
-                        children: collapsed ? "—" : "Sistemas"
-                    }, void 0, false, {
-                        fileName: "[project]/components/Sidebar.jsx",
-                        lineNumber: 47,
-                        columnNumber: 9
-                    }, this),
-                    systems.map((sys)=>{
-                        const isActive = activeView === sys.id;
-                        const summary = sys.summary;
-                        return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                            onClick: ()=>onNavigate(sys.id),
-                            className: `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-body font-medium transition-colors ${isActive ? "bg-base-800 text-ink-hi border border-signal-info/40" : "text-ink-mid hover:text-ink-hi hover:bg-base-800 border border-transparent"}`,
-                            title: sys.label,
-                            children: [
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                    className: "h-6 w-6 rounded-full bg-base-700 flex items-center justify-center text-[11px] font-mono shrink-0",
-                                    children: SYSTEM_INITIAL[sys.id] || sys.label[0]
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "h-6 w-6 rounded-full bg-base-700 flex items-center justify-center shrink-0 overflow-hidden",
+                                children: icon ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
+                                    src: icon,
+                                    alt: sys.label,
+                                    width: 24,
+                                    height: 24,
+                                    className: "object-cover w-full h-full"
+                                }, void 0, false, {
+                                    fileName: "[project]/components/Sidebar.jsx",
+                                    lineNumber: 57,
+                                    columnNumber: 19
+                                }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                    className: "text-[11px] font-mono",
+                                    children: sys.label[0]
                                 }, void 0, false, {
                                     fileName: "[project]/components/Sidebar.jsx",
                                     lineNumber: 65,
-                                    columnNumber: 15
-                                }, this),
-                                !collapsed && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                    className: "flex-1 text-left truncate",
-                                    children: sys.label
-                                }, void 0, false, {
-                                    fileName: "[project]/components/Sidebar.jsx",
-                                    lineNumber: 69,
-                                    columnNumber: 17
-                                }, this),
-                                !collapsed && summary != null && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                    className: "text-[11px] font-mono text-ink-lo",
-                                    children: summary
-                                }, void 0, false, {
-                                    fileName: "[project]/components/Sidebar.jsx",
-                                    lineNumber: 72,
-                                    columnNumber: 17
+                                    columnNumber: 19
                                 }, this)
-                            ]
-                        }, sys.id, true, {
-                            fileName: "[project]/components/Sidebar.jsx",
-                            lineNumber: 55,
-                            columnNumber: 13
-                        }, this);
-                    })
-                ]
-            }, void 0, true, {
-                fileName: "[project]/components/Sidebar.jsx",
-                lineNumber: 34,
-                columnNumber: 7
-            }, this),
-            !collapsed && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "border-t border-line p-3 flex items-center justify-between",
-                children: [
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                        className: "text-[11px] text-ink-lo font-mono",
-                        children: [
-                            "🔔 ",
-                            toastCount || 0
+                            }, void 0, false, {
+                                fileName: "[project]/components/Sidebar.jsx",
+                                lineNumber: 55,
+                                columnNumber: 15
+                            }, this),
+                            !collapsed && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                className: "flex-1 text-left truncate",
+                                children: sys.label
+                            }, void 0, false, {
+                                fileName: "[project]/components/Sidebar.jsx",
+                                lineNumber: 71,
+                                columnNumber: 17
+                            }, this),
+                            !collapsed && summary != null && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                className: "text-[11px] font-mono text-ink-lo",
+                                children: summary
+                            }, void 0, false, {
+                                fileName: "[project]/components/Sidebar.jsx",
+                                lineNumber: 74,
+                                columnNumber: 17
+                            }, this)
                         ]
-                    }, void 0, true, {
+                    }, sys.id, true, {
                         fileName: "[project]/components/Sidebar.jsx",
-                        lineNumber: 81,
-                        columnNumber: 11
-                    }, this),
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                        className: "h-7 w-7 rounded-full bg-signal-info/20 text-signal-info flex items-center justify-center text-[11px] font-mono font-semibold",
-                        children: "CT"
-                    }, void 0, false, {
-                        fileName: "[project]/components/Sidebar.jsx",
-                        lineNumber: 82,
-                        columnNumber: 11
-                    }, this)
-                ]
-            }, void 0, true, {
-                fileName: "[project]/components/Sidebar.jsx",
-                lineNumber: 80,
-                columnNumber: 9
-            }, this)
-        ]
-    }, void 0, true, {
+                        lineNumber: 45,
+                        columnNumber: 13
+                    }, this);
+                })
+            ]
+        }, void 0, true, {
+            fileName: "[project]/components/Sidebar.jsx",
+            lineNumber: 32,
+            columnNumber: 7
+        }, this)
+    }, void 0, false, {
         fileName: "[project]/components/Sidebar.jsx",
-        lineNumber: 17,
+        lineNumber: 25,
         columnNumber: 5
     }, this);
 }

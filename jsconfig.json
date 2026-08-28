@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
+    "moduleResolution": "bundler",  // o "node16" / "nodenext"
     "paths": {
       "@/*": ["./*"]
     }
+    // "baseUrl" ya no está
   }
 }

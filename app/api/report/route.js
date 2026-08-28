@@ -125,13 +125,15 @@ export async function GET(request) {
   const format = searchParams.get("format") || "json";
   const scope = searchParams.get("scope") || "open";
   const includeFirstResponse = searchParams.get("metrics") === "first_response";
+  const systemId = searchParams.get("systemId"); // opcional: acota el export a un solo sistema
 
   const results = DEMO_MODE
     ? getDemoResults()
     : await Promise.all(SYSTEMS.map((s) => fetchTicketsForSystem(s)));
 
   const allTickets = results.flatMap((r) => r.tickets);
-  const { tickets, totals, bySystem } = summarize(allTickets);
+  const { tickets: allEvaluated, totals, bySystem } = summarize(allTickets);
+  const tickets = systemId ? allEvaluated.filter((t) => t.systemId === systemId) : allEvaluated;
 
   if (format === "csv") {
     let scoped = scope === "all" ? tickets : tickets.filter((t) => t.isOpen);

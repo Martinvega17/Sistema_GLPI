@@ -1,0 +1,14 @@
+{
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/alerts/route": "app/api/alerts/route.js",
+  "/api/assistant/route": "app/api/assistant/route.js",
+  "/api/project-tickets/route": "app/api/project-tickets/route.js",
+  "/api/report/route": "app/api/report/route.js",
+  "/api/ticket-detail/route": "app/api/ticket-detail/route.js",
+  "/api/ticket-extras/route": "app/api/ticket-extras/route.js",
+  "/api/tickets/route": "app/api/tickets/route.js",
+  "/page": "app/page.js",
+  "/proyecto/[category]/page": "app/proyecto/[category]/page.js",
+  "/tickets/page": "app/tickets/page.js"
+}

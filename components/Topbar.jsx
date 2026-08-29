@@ -6,11 +6,26 @@ import RelativeTime from "./RelativeTime";
 
 const REFRESH_INTERVAL_MS = 30_000;
 const MAX_EVENTS = 12;
+// Umbral para el aviso "Solicitar retro": ticket abierto sin ninguna
+// modificación (dateModified) en más de este tiempo. Es una aproximación —
+// /api/tickets no trae el detalle de seguimientos por ticket (sería muy
+// caro pedirlo para cientos de tickets solo para la campana), así que se
+// usa "última modificación" como proxy de "sin respuesta técnica".
+const FOLLOWUP_STALE_HOURS = 24;
+
+function hoursSince(dateStr) {
+  if (!dateStr) return null;
+  const then = new Date(dateStr.replace(" ", "T"));
+  if (Number.isNaN(then.getTime())) return null;
+  return (Date.now() - then.getTime()) / (1000 * 60 * 60);
+}
 
 // A partir de la lista completa de tickets (la misma que usa el resto del
 // dashboard, /api/tickets) arma una lista de "eventos" recientes:
 //   - resueltos/cerrados recientemente (verde)
 //   - abiertos que llevan tiempo sin respuesta según su SLA (amarillo/rojo)
+//   - abiertos sin ninguna actividad en más de FOLLOWUP_STALE_HOURS
+//     ("Solicitar retro" — pide seguimiento al área asignada)
 // No es un feed en tiempo real de GLPI (no tiene webhooks); se recalcula
 // en cada refresco de 30s comparando contra el estado actual de los tickets.
 function buildEvents(tickets) {
@@ -40,6 +55,20 @@ function buildEvents(tickets) {
         hoursLimit: t.slaHoursLimit,
         at,
       });
+    } else {
+      const staleHours = hoursSince(t.dateModified);
+      if (staleHours !== null && staleHours >= FOLLOWUP_STALE_HOURS) {
+        events.push({
+          id: `followup-${t.id}`,
+          kind: "followup",
+          systemId: t.systemId,
+          system: t.systemLabel,
+          rawId: t.rawId,
+          title: t.title,
+          staleHours: Math.floor(staleHours),
+          at,
+        });
+      }
     }
   }
   events.sort((a, b) => String(b.at).localeCompare(String(a.at)));
@@ -49,6 +78,7 @@ function buildEvents(tickets) {
 function EventIcon({ kind }) {
   if (kind === "resolved") return <span className="text-signal-ok">✓</span>;
   if (kind === "breach") return <span className="text-signal-crit">⏱</span>;
+  if (kind === "followup") return <span className="text-signal-warn">🔁</span>;
   return <span className="text-signal-warn">⏱</span>;
 }
 
@@ -57,6 +87,12 @@ function eventText(ev) {
     return {
       heading: `Ticket #${ev.rawId} resuelto · Herramienta: ${ev.system}`,
       detail: ev.title,
+    };
+  }
+  if (ev.kind === "followup") {
+    return {
+      heading: `Solicitar retro · Ticket #${ev.rawId} · Herramienta: ${ev.system}`,
+      detail: `Más de ${ev.staleHours}h sin respuesta técnica. Solicita retro al área asignada.`,
     };
   }
   const urgency = ev.kind === "breach" ? "Fuera de SLA" : "Por vencer SLA";

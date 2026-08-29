@@ -6,6 +6,7 @@ import InicioView from "@/components/InicioView";
 import SystemTicketsView from "@/components/SystemTicketsView";
 import AssistantPanel from "@/components/AssistantPanel";
 import ToastNotifications from "@/components/ToastNotifications";
+import Topbar from "@/components/Topbar";
 import { SYSTEMS } from "@/lib/systems";
 
 const REFRESH_INTERVAL_MS = 30_000;
@@ -114,66 +115,69 @@ export default function DashboardPage() {
         toastCount={toasts.length}
       />
 
-      <main className="flex-1 overflow-y-auto scrollbar-thin relative">
-        {lastFetchError && (
-          <div className="m-4 rounded-md border border-signal-crit/40 bg-signal-crit/10 text-signal-crit text-sm font-body px-4 py-2">
-            {lastFetchError}
-          </div>
-        )}
-
-        {data?.errors?.length > 0 && (
-          <div className="m-4 rounded-md border border-signal-warn/40 bg-signal-warn/10 text-signal-warn text-sm font-body px-4 py-2">
-            {data.errors.map((e, i) => (
-              <div key={i}>
-                ⚠ {e.system}: {e.error}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {data?.demoMode && (
-          <div className="m-4 text-signal-warn text-xs font-mono border border-signal-warn/40 rounded px-2 py-1 inline-block">
-            MODO DEMO — datos de ejemplo
-          </div>
-        )}
-
-        {!data && !lastFetchError && (
-          <div className="p-8 text-ink-mid font-mono text-sm">
-            Conectando con los 5 sistemas… ({loadingSeconds}s)
-            {loadingSeconds >= 20 && (
-              <div className="mt-2 text-signal-warn text-xs max-w-md">
-                Esto está tardando más de lo normal — puede ser que algún GLPI esté respondiendo
-                lento por VPN/red. Revisa la terminal donde corre <code>npm run dev</code>: ahí se
-                imprime el avance de cada sistema (sesión, páginas de tickets, o el error si
-                falló).
-              </div>
-            )}
-          </div>
-        )}
-
-        {data && view === "inicio" && <InicioView data={data} onGoToSystem={setView} />}
-
-        {data && activeSystem && (
-          <SystemTicketsView
-            system={activeSystem}
-            tickets={ticketsBySystem[activeSystem.id] || []}
-            onOpenDetail={setSelectedTicket}
-            generatedAt={data.generatedAt}
-          />
-        )}
-
-        {/* Panel de detalle del ticket seleccionado, como cajón deslizable */}
-        {selectedTicket && (
-          <>
-            <div
-              className="fixed inset-0 bg-black/40 z-40"
-              onClick={() => setSelectedTicket(null)}
-            />
-            <div className="fixed top-0 right-0 h-full w-full max-w-md z-50 p-4 overflow-y-auto scrollbar-thin">
-              <AssistantPanel ticket={selectedTicket} onClose={() => setSelectedTicket(null)} />
+      <main className="flex-1 flex flex-col overflow-hidden relative">
+        <Topbar onOpenMobileMenu={() => { }} onToggleCollapse={() => { }} collapsed={false} />
+        <div className="flex-1 overflow-y-auto scrollbar-thin relative">
+          {lastFetchError && (
+            <div className="m-4 rounded-md border border-signal-crit/40 bg-signal-crit/10 text-signal-crit text-sm font-body px-4 py-2">
+              {lastFetchError}
             </div>
-          </>
-        )}
+          )}
+
+          {data?.errors?.length > 0 && (
+            <div className="m-4 rounded-md border border-signal-warn/40 bg-signal-warn/10 text-signal-warn text-sm font-body px-4 py-2">
+              {data.errors.map((e, i) => (
+                <div key={i}>
+                  ⚠ {e.system}: {e.error}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {data?.demoMode && (
+            <div className="m-4 text-signal-warn text-xs font-mono border border-signal-warn/40 rounded px-2 py-1 inline-block">
+              MODO DEMO — datos de ejemplo
+            </div>
+          )}
+
+          {!data && !lastFetchError && (
+            <div className="p-8 text-ink-mid font-mono text-sm">
+              Conectando con los 5 sistemas… ({loadingSeconds}s)
+              {loadingSeconds >= 20 && (
+                <div className="mt-2 text-signal-warn text-xs max-w-md">
+                  Esto está tardando más de lo normal — puede ser que algún GLPI esté respondiendo
+                  lento por VPN/red. Revisa la terminal donde corre <code>npm run dev</code>: ahí se
+                  imprime el avance de cada sistema (sesión, páginas de tickets, o el error si
+                  falló).
+                </div>
+              )}
+            </div>
+          )}
+
+          {data && view === "inicio" && <InicioView data={data} onGoToSystem={setView} />}
+
+          {data && activeSystem && (
+            <SystemTicketsView
+              system={activeSystem}
+              tickets={ticketsBySystem[activeSystem.id] || []}
+              onOpenDetail={setSelectedTicket}
+              generatedAt={data.generatedAt}
+            />
+          )}
+
+          {/* Panel de detalle del ticket seleccionado, como cajón deslizable */}
+          {selectedTicket && (
+            <>
+              <div
+                className="fixed inset-0 bg-black/40 z-40"
+                onClick={() => setSelectedTicket(null)}
+              />
+              <div className="fixed top-0 right-0 h-full w-full max-w-md z-50 p-4 overflow-y-auto scrollbar-thin">
+                <AssistantPanel ticket={selectedTicket} onClose={() => setSelectedTicket(null)} />
+              </div>
+            </>
+          )}
+        </div>
       </main>
     </div>
   );

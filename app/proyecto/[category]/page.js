@@ -5,7 +5,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import ProjectTicketTable from "@/components/ProjectTicketTable";
 
 const REFRESH_INTERVAL_MS = 60_000; // más lento que /tickets: esta vista trae campos más pesados por ticket
-const PAGE_SIZE = 10;
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 const SEARCH_DEBOUNCE_MS = 400;
 
 export default function ProjectPage() {
@@ -23,6 +23,7 @@ export default function ProjectPage() {
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTIONS[0]);
 
   // Debounce: espera a que el usuario deje de teclear antes de pedirle a
   // la API la lista filtrada (si no, cada letra dispararía una carga).
@@ -35,7 +36,7 @@ export default function ProjectPage() {
   // parado en una página que ya no existe para el nuevo filtro).
   useEffect(() => {
     setPage(1);
-  }, [categoryId, systemFilter, statusFilter, searchQuery]);
+  }, [categoryId, systemFilter, statusFilter, searchQuery, pageSize]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -46,7 +47,7 @@ export default function ProjectPage() {
         const params = new URLSearchParams({
           category: categoryId,
           page: String(page),
-          pageSize: String(PAGE_SIZE),
+          pageSize: String(pageSize),
           system: systemFilter,
           estado: statusFilter,
         });
@@ -75,7 +76,7 @@ export default function ProjectPage() {
       clearInterval(id);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categoryId, page, systemFilter, statusFilter, searchQuery]);
+  }, [categoryId, page, pageSize, systemFilter, statusFilter, searchQuery]);
 
   // Si el usuario navega entre "Tickets" y "Pendientes" del mismo sistema
   // desde el menú lateral, la ruta (/proyecto/[category]) es la misma y
@@ -193,7 +194,21 @@ export default function ProjectPage() {
                 </span>{" "}
                 de <span className="text-ink-hi font-semibold">{pagination.totalCount}</span> tickets
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-1.5 text-sm font-body text-ink-mid">
+                  <select
+                    value={pageSize}
+                    onChange={(e) => setPageSize(Number(e.target.value))}
+                    className="px-2 py-1.5 rounded-md text-sm font-body border border-line bg-base-900 text-ink-hi focus:outline-none focus:border-signal-info transition-colors"
+                  >
+                    {PAGE_SIZE_OPTIONS.map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
+                  por página
+                </label>
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={pagination.page <= 1 || loading}

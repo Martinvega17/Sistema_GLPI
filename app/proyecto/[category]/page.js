@@ -125,27 +125,27 @@ export default function ProjectPage() {
   const pagination = data?.pagination;
 
   return (
-    <main className="min-h-full bg-base-950 max-w-[1600px] mx-auto px-6 py-8 flex flex-col gap-5">
+    <main className="min-h-full bg-slate-50 max-w-[1600px] mx-auto px-6 py-8 flex flex-col gap-5">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl font-bold text-ink-hi">
+          <h1 className="font-display text-2xl font-bold text-slate-900">
             {data?.category?.label || "Cargando…"}
           </h1>
-          <p className="text-ink-mid text-sm font-body mt-1">{data?.category?.description}</p>
+          <p className="text-slate-500 text-sm font-body mt-1">{data?.category?.description}</p>
         </div>
-        <div className="text-ink-lo text-xs font-mono">
+        <div className="text-slate-400 text-xs font-mono">
           {data ? `actualizado ${new Date(data.generatedAt).toLocaleTimeString("es-MX")}` : ""}
         </div>
       </header>
 
       {error && (
-        <div className="rounded-md border border-signal-crit/40 bg-signal-crit/10 text-signal-crit text-sm font-body px-4 py-2">
+        <div className="rounded-md border border-rose-200 bg-rose-50 text-rose-600 text-sm font-body px-4 py-2">
           {error}
         </div>
       )}
 
       {data?.errors?.length > 0 && (
-        <div className="rounded-md border border-signal-warn/40 bg-signal-warn/10 text-signal-warn text-sm font-body px-4 py-2">
+        <div className="rounded-md border border-amber-200 bg-amber-50 text-amber-700 text-sm font-body px-4 py-2">
           {data.errors.map((e, i) => (
             <div key={i}>
               ⚠ {e.system}: {e.error}
@@ -163,8 +163,8 @@ export default function ProjectPage() {
                   onClick={() => setSystemFilter("all")}
                   className={`px-3 py-1.5 rounded-md text-sm font-body border transition-colors ${
                     systemFilter === "all"
-                      ? "border-signal-info bg-base-800 text-ink-hi"
-                      : "border-line bg-base-900 text-ink-mid hover:text-ink-hi"
+                      ? "border-blue-300 bg-blue-50 text-blue-700"
+                      : "border-slate-200 bg-white text-slate-600 hover:text-slate-900"
                   }`}
                 >
                   Todos
@@ -175,14 +175,14 @@ export default function ProjectPage() {
                     onClick={() => setSystemFilter(s.id)}
                     className={`px-3 py-1.5 rounded-md text-sm font-body border transition-colors ${
                       systemFilter === s.id
-                        ? "border-signal-info bg-base-800 text-ink-hi"
-                        : "border-line bg-base-900 text-ink-mid hover:text-ink-hi"
+                        ? "border-blue-300 bg-blue-50 text-blue-700"
+                        : "border-slate-200 bg-white text-slate-600 hover:text-slate-900"
                     }`}
                   >
                     {s.label}
                   </button>
                 ))}
-                <span className="w-px h-5 bg-line mx-1" />
+                <span className="w-px h-5 bg-slate-200 mx-1" />
               </>
             )}
             {[
@@ -195,8 +195,8 @@ export default function ProjectPage() {
                 onClick={() => setStatusFilter(key)}
                 className={`px-3 py-1.5 rounded-md text-sm font-body border transition-colors ${
                   statusFilter === key
-                    ? "border-signal-info bg-base-800 text-ink-hi"
-                    : "border-line bg-base-900 text-ink-mid hover:text-ink-hi"
+                    ? "border-blue-300 bg-blue-50 text-blue-700"
+                    : "border-slate-200 bg-white text-slate-600 hover:text-slate-900"
                 }`}
               >
                 {label}
@@ -207,7 +207,7 @@ export default function ProjectPage() {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Buscar ticket (folio, título, solicitante...)"
-              className="ml-auto w-72 px-3 py-1.5 rounded-md text-sm font-body border border-line bg-base-900 text-ink-hi placeholder-ink-lo focus:outline-none focus:border-signal-info transition-colors"
+              className="ml-auto w-72 px-3 py-1.5 rounded-md text-sm font-body border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-400 transition-colors"
             />
           </div>
 
@@ -217,20 +217,20 @@ export default function ProjectPage() {
 
           {pagination && pagination.totalCount > 0 && (
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="text-xs text-ink-mid font-body">
+              <div className="text-xs text-slate-500 font-body">
                 Mostrando{" "}
-                <span className="text-ink-hi font-semibold">
+                <span className="text-slate-800 font-semibold">
                   {(pagination.page - 1) * pagination.pageSize + 1}–
                   {Math.min(pagination.page * pagination.pageSize, pagination.totalCount)}
                 </span>{" "}
-                de <span className="text-ink-hi font-semibold">{pagination.totalCount}</span> tickets
+                de <span className="text-slate-800 font-semibold">{pagination.totalCount}</span> tickets
               </div>
               <div className="flex items-center gap-3">
-                <label className="flex items-center gap-1.5 text-sm font-body text-ink-mid">
+                <label className="flex items-center gap-1.5 text-sm font-body text-slate-500">
                   <select
                     value={pageSize}
                     onChange={(e) => setPageSize(Number(e.target.value))}
-                    className="px-2 py-1.5 rounded-md text-sm font-body border border-line bg-base-900 text-ink-hi focus:outline-none focus:border-signal-info transition-colors"
+                    className="px-2 py-1.5 rounded-md text-sm font-body border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-blue-400 transition-colors"
                   >
                     {PAGE_SIZE_OPTIONS.map((n) => (
                       <option key={n} value={n}>
@@ -243,18 +243,18 @@ export default function ProjectPage() {
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={pagination.page <= 1 || loading}
-                  className="px-3 py-1.5 rounded-md text-sm font-body border border-line bg-base-900 text-ink-mid hover:text-ink-hi disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="px-3 py-1.5 rounded-md text-sm font-body border border-slate-200 bg-white text-slate-600 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   ← Anterior
                 </button>
-                <span className="text-sm font-body text-ink-mid px-1">
-                  Página <span className="text-ink-hi font-semibold">{pagination.page}</span> de{" "}
+                <span className="text-sm font-body text-slate-500 px-1">
+                  Página <span className="text-slate-800 font-semibold">{pagination.page}</span> de{" "}
                   {pagination.totalPages}
                 </span>
                 <button
                   onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
                   disabled={pagination.page >= pagination.totalPages || loading}
-                  className="px-3 py-1.5 rounded-md text-sm font-body border border-line bg-base-900 text-ink-mid hover:text-ink-hi disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="px-3 py-1.5 rounded-md text-sm font-body border border-slate-200 bg-white text-slate-600 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   Siguiente →
                 </button>
@@ -264,7 +264,7 @@ export default function ProjectPage() {
         </>
       )}
 
-      {!data && !error && <div className="text-ink-mid font-mono text-sm">Cargando tickets del proyecto…</div>}
+      {!data && !error && <div className="text-slate-500 font-mono text-sm">Cargando tickets del proyecto…</div>}
     </main>
   );
 }

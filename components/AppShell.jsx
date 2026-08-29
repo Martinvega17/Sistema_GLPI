@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 
@@ -16,11 +16,16 @@ export default function AppShell({ children }) {
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar
-        collapsed={collapsed}
-        mobileOpen={mobileOpen}
-        onCloseMobile={() => setMobileOpen(false)}
-      />
+      {/* Sidebar usa useSearchParams() (para resaltar Tickets/Pendientes
+          activo) — Next exige que eso vaya dentro de un <Suspense>, aunque
+          aquí se resuelve casi instantáneo porque no depende de red. */}
+      <Suspense fallback={<div className="hidden md:block w-72 h-screen bg-white border-r border-slate-200" />}>
+        <Sidebar
+          collapsed={collapsed}
+          mobileOpen={mobileOpen}
+          onCloseMobile={() => setMobileOpen(false)}
+        />
+      </Suspense>
 
       <div className="flex-1 flex flex-col min-w-0">
         <Topbar
@@ -28,7 +33,11 @@ export default function AppShell({ children }) {
           onToggleCollapse={() => setCollapsed((v) => !v)}
           collapsed={collapsed}
         />
-        <main className="flex-1 min-w-0">{children}</main>
+        {/* bg-slate-50: mismo tono claro que el sidebar, para que Inicio no
+            se sienta "cortado" contra un fondo oscuro. Las vistas que sí
+            son oscuras (Tickets por proyecto, /tickets) ponen su propio
+            fondo oscuro sobre este, así que no se ven afectadas. */}
+        <main className="flex-1 min-w-0 bg-slate-50">{children}</main>
       </div>
     </div>
   );

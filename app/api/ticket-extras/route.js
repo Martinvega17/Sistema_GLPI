@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { SYSTEMS, DEMO_MODE } from "@/lib/systems";
+import { SYSTEMS, isSystemDemo } from "@/lib/systems";
 import { fetchTicketExtrasBatch } from "@/lib/glpiClient";
 import { getDemoTicketExtras } from "@/lib/demoData";
 
@@ -18,18 +18,18 @@ export async function POST(request) {
     return NextResponse.json({ error: "Faltan 'systemId' y/o 'rawIds' (arreglo no vacío)" }, { status: 400 });
   }
 
-  if (DEMO_MODE) {
+  const system = SYSTEMS.find((s) => s.id === systemId);
+  if (!system) {
+    return NextResponse.json({ error: `Sistema desconocido: ${systemId}` }, { status: 404 });
+  }
+
+  if (isSystemDemo(system)) {
     const byId = {};
     const ticketById = new Map((tickets || []).map((t) => [String(t.rawId), t]));
     for (const rawId of rawIds) {
       byId[rawId] = getDemoTicketExtras(ticketById.get(String(rawId)) || { rawId });
     }
     return NextResponse.json({ extras: byId });
-  }
-
-  const system = SYSTEMS.find((s) => s.id === systemId);
-  if (!system) {
-    return NextResponse.json({ error: `Sistema desconocido: ${systemId}` }, { status: 404 });
   }
 
   const extras = await fetchTicketExtrasBatch(system, rawIds);

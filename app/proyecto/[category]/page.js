@@ -8,6 +8,19 @@ const REFRESH_INTERVAL_MS = 60_000; // más lento que /tickets: esta vista trae 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 const SEARCH_DEBOUNCE_MS = 400;
 
+// Caché EN MEMORIA DEL NAVEGADOR (no del servidor), a nivel de módulo — por
+// eso vive FUERA del componente: así sobrevive aunque el componente se
+// desmonte/vuelva a montar (p. ej. al navegar Tickets -> Pendientes ->
+// Tickets del mismo proyecto). Guarda la última respuesta por combinación
+// exacta de filtros (categoría+página+tamaño+sistema+estado+búsqueda).
+//
+// Con esto, volver a una pestaña/filtro que ya viste hace poco muestra los
+// datos AL INSTANTE (sin "Cargando…" ni golpear /api/project-tickets otra
+// vez) mientras siga fresco; si ya pasó el TTL, se refresca en segundo
+// plano sin bloquear lo que ya se está mostrando.
+const pageCache = new Map(); // key -> { data, ts }
+const CACHE_TTL_MS = 20_000;
+
 export default function ProjectPage() {
   const { category: categoryId } = useParams();
   const searchParams = useSearchParams();
@@ -40,24 +53,42 @@ export default function ProjectPage() {
 
   useEffect(() => {
     const controller = new AbortController();
+    const params = new URLSearchParams({
+      category: categoryId,
+      page: String(page),
+      pageSize: String(pageSize),
+      system: systemFilter,
+      estado: statusFilter,
+    });
+    if (searchQuery) params.set("q", searchQuery);
+    const cacheKey = params.toString();
+
+    const cached = pageCache.get(cacheKey);
+    const isFresh = cached && Date.now() - cached.ts < CACHE_TTL_MS;
+
+    if (cached) {
+      // Ya lo teníamos: se muestra de inmediato, sin parpadeo de "Cargando…"
+      // ni tocar el servidor (si además sigue fresco, ni se revalida).
+      setData(cached.data);
+      setError(null);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
+
+    if (isFresh) {
+      return () => controller.abort();
+    }
 
     async function load() {
-      setLoading(true);
+      if (!pageCache.has(cacheKey)) setLoading(true);
       try {
-        const params = new URLSearchParams({
-          category: categoryId,
-          page: String(page),
-          pageSize: String(pageSize),
-          system: systemFilter,
-          estado: statusFilter,
-        });
-        if (searchQuery) params.set("q", searchQuery);
-
-        const res = await fetch(`/api/project-tickets?${params.toString()}`, {
+        const res = await fetch(`/api/project-tickets?${cacheKey}`, {
           cache: "no-store",
           signal: controller.signal,
         });
         const json = await res.json();
+        pageCache.set(cacheKey, { data: json, ts: Date.now() });
         setData(json);
         setError(null);
       } catch (err) {
@@ -94,7 +125,7 @@ export default function ProjectPage() {
   const pagination = data?.pagination;
 
   return (
-    <main className="max-w-[1600px] mx-auto px-6 py-8 flex flex-col gap-5">
+    <main className="min-h-full bg-base-950 max-w-[1600px] mx-auto px-6 py-8 flex flex-col gap-5">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl font-bold text-ink-hi">

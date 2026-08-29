@@ -120,17 +120,17 @@ export default function ProjectTicketTable({ tickets }) {
 
   if (tickets.length === 0) {
     return (
-      <div className="rounded-lg border border-line bg-base-900 p-8 text-center text-ink-mid font-body">
+      <div className="rounded-lg border border-line bg-slate-100 p-8 text-center text-ink-mid font-body">
         No hay tickets que coincidan con el filtro actual.
       </div>
     );
   }
 
   return (
-    <div className="rounded-lg border border-line bg-base-900 shadow-panel overflow-hidden">
+    <div className="rounded-lg border border-line bg-slate-100 shadow-panel overflow-hidden">
       <div className="max-h-[640px] overflow-auto scrollbar-thin">
         <table className="text-sm border-collapse">
-          <thead className="sticky top-0 z-10 bg-base-800 text-ink-mid text-xs uppercase tracking-wider font-body">
+          <thead className="sticky top-0 z-10 bg-slate-100 text-ink-mid text-xs uppercase tracking-wider font-body">
             <tr>
               {COLUMNS.map((col) => {
                 const isSorted = sort?.key === col.sortKey && col.sortKey;
@@ -152,7 +152,7 @@ export default function ProjectTicketTable({ tickets }) {
           </thead>
           <tbody className="font-body">
             {sorted.map((t) => (
-              <tr key={t.id} className="border-t border-line hover:bg-base-800/60 align-top">
+              <tr key={t.id} className="border-t border-line hover:bg-slate-100/60 align-top">
                 <td className="px-4 py-3 text-signal-info font-mono whitespace-nowrap">
                   <a href={t.url} target="_blank" rel="noreferrer" className="hover:underline">
                     {t.rawId}

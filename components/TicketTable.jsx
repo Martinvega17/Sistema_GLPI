@@ -17,17 +17,17 @@ const SLA_LABEL = {
 export default function TicketTable({ tickets, onSelectTicket, selectedId }) {
   if (tickets.length === 0) {
     return (
-      <div className="rounded-lg border border-line bg-base-900 p-8 text-center text-ink-mid font-body">
+      <div className="rounded-lg border border-line bg-slate-100 p-8 text-center text-ink-mid font-body">
         No hay tickets que coincidan con el filtro actual.
       </div>
     );
   }
 
   return (
-    <div className="rounded-lg border border-line bg-base-900 shadow-panel overflow-hidden">
+    <div className="rounded-lg border border-line bg-slate-100 shadow-panel overflow-hidden">
       <div className="max-h-[560px] overflow-y-auto scrollbar-thin">
         <table className="w-full text-sm">
-          <thead className="sticky top-0 bg-base-800 text-ink-mid text-xs uppercase tracking-wider font-body">
+          <thead className="sticky top-0 bg-slate-100 text-ink-mid text-xs uppercase tracking-wider font-body">
             <tr>
               <th className="text-left px-4 py-2 font-medium">Sistema</th>
               <th className="text-left px-4 py-2 font-medium">Ticket</th>

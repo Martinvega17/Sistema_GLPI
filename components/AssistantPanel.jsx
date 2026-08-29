@@ -90,7 +90,7 @@ export default function AssistantPanel({ ticket, onClose }) {
           </div>
 
           {/* Resumen / descripción completa del ticket */}
-          <div className="rounded-md border border-line bg-base-800 p-3">
+          <div className="rounded-md border border-line bg-slate-100 p-3">
             <p className="text-[11px] uppercase tracking-wider text-ink-lo font-body mb-1">Descripción</p>
             {loadingDetail && !description && (
               <p className="text-ink-lo text-sm font-mono animate-pulse">Cargando…</p>
@@ -108,7 +108,7 @@ export default function AssistantPanel({ ticket, onClose }) {
           {/* Última respuesta: qué área respondió (según el grupo asignado
               al ticket) y qué dijo. Ya no se muestra el grupo del autor
               individual ni su nombre — solo el área/grupo del ticket. */}
-          <div className="rounded-md border border-line bg-base-800 p-3">
+          <div className="rounded-md border border-line bg-slate-100 p-3">
             <p className="text-[11px] uppercase tracking-wider text-ink-lo font-body mb-1">Última respuesta</p>
             {loadingDetail && (
               <p className="text-ink-lo text-sm font-mono animate-pulse">Cargando…</p>
@@ -143,7 +143,7 @@ export default function AssistantPanel({ ticket, onClose }) {
           {/* Sugerencia de acción (reglas locales o Claude) */}
           {loadingSuggestion && <div className="text-ink-lo text-sm font-mono animate-pulse">Analizando…</div>}
           {!loadingSuggestion && suggestion && (
-            <div className="rounded-md border border-line bg-base-800 p-3">
+            <div className="rounded-md border border-line bg-slate-100 p-3">
               <p className="text-[11px] uppercase tracking-wider text-ink-lo font-body mb-1">Acción sugerida</p>
               <p className="text-sm text-ink-hi font-body leading-relaxed">{suggestion.text}</p>
               <p className="mt-2 text-[11px] text-ink-lo font-mono">

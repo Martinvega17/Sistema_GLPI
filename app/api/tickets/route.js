@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
-import { SYSTEMS, DEMO_MODE } from "@/lib/systems";
-import { fetchTicketsForSystem } from "@/lib/glpiClient";
-import { getDemoResults } from "@/lib/demoData";
+import { DEMO_MODE } from "@/lib/systems";
+import { fetchAllSystemResults } from "@/lib/ticketSource";
 import { summarize } from "@/lib/sla";
 
-export const dynamic = "force-dynamic"; // nunca cachear: esto es lo que da el "tiempo real"
+export const dynamic = "force-dynamic"; // nunca cachear a nivel Next: el TTL corto ya lo maneja lib/ticketSource.js
 
 export async function GET() {
-  const results = DEMO_MODE
-    ? getDemoResults()
-    : await Promise.all(SYSTEMS.map((s) => fetchTicketsForSystem(s)));
+  // fetchAllSystemResults: usa demo por sistema (isSystemDemo — cubre IMSS
+  // sin baseUrl) y reutiliza un caché corto en memoria para no volver a
+  // autenticar+traer TODO el listado de cada GLPI real en cada poll de 30s.
+  const results = await fetchAllSystemResults();
 
   const allTickets = results.flatMap((r) => r.tickets);
   const errors = results.filter((r) => !r.ok).map((r) => ({ system: r.systemLabel, error: r.error }));

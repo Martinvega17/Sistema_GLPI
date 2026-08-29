@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { SYSTEMS, DEMO_MODE } from "@/lib/systems";
-import { fetchTicketsForSystem, fetchFirstResponseForTickets } from "@/lib/glpiClient";
-import { getDemoResults } from "@/lib/demoData";
+import { SYSTEMS, isSystemDemo } from "@/lib/systems";
+import { fetchFirstResponseForTickets } from "@/lib/glpiClient";
+import { fetchAllSystemResults } from "@/lib/ticketSource";
 import { summarize } from "@/lib/sla";
 
 export const dynamic = "force-dynamic";
@@ -77,26 +77,25 @@ function toCsv(tickets, { includeFirstResponse = false } = {}) {
 // para "cuánto tardan en contestar" como para "cuánto tardan en escalar".
 async function attachFirstResponseTimes(tickets) {
   const dateByTicketId = {};
+  const bySystemId = {};
+  for (const t of tickets) (bySystemId[t.systemId] ||= []).push(t);
 
-  if (DEMO_MODE) {
-    // En modo demo cada ticket ya trae "firstResponseAt" simulado.
-    for (const t of tickets) dateByTicketId[t.id] = t.firstResponseAt || null;
-  } else {
-    const bySystemId = {};
-    for (const t of tickets) (bySystemId[t.systemId] ||= []).push(t);
-
-    await Promise.all(
-      Object.entries(bySystemId).map(async ([systemId, sysTickets]) => {
-        const system = SYSTEMS.find((s) => s.id === systemId);
-        if (!system) return;
-        const dates = await fetchFirstResponseForTickets(
-          system,
-          sysTickets.map((t) => t.rawId)
-        );
-        for (const t of sysTickets) dateByTicketId[t.id] = dates[t.rawId] || null;
-      })
-    );
-  }
+  await Promise.all(
+    Object.entries(bySystemId).map(async ([systemId, sysTickets]) => {
+      const system = SYSTEMS.find((s) => s.id === systemId);
+      if (!system) return;
+      if (isSystemDemo(system)) {
+        // En modo demo cada ticket ya trae "firstResponseAt" simulado.
+        for (const t of sysTickets) dateByTicketId[t.id] = t.firstResponseAt || null;
+        return;
+      }
+      const dates = await fetchFirstResponseForTickets(
+        system,
+        sysTickets.map((t) => t.rawId)
+      );
+      for (const t of sysTickets) dateByTicketId[t.id] = dates[t.rawId] || null;
+    })
+  );
 
   return tickets.map((t) => {
     const firstResponseDate = dateByTicketId[t.id] || null;
@@ -127,9 +126,7 @@ export async function GET(request) {
   const includeFirstResponse = searchParams.get("metrics") === "first_response";
   const systemId = searchParams.get("systemId"); // opcional: acota el export a un solo sistema
 
-  const results = DEMO_MODE
-    ? getDemoResults()
-    : await Promise.all(SYSTEMS.map((s) => fetchTicketsForSystem(s)));
+  const results = await fetchAllSystemResults();
 
   const allTickets = results.flatMap((r) => r.tickets);
   const { tickets: allEvaluated, totals, bySystem } = summarize(allTickets);

@@ -144,11 +144,11 @@ export default function Topbar({ onOpenMobileMenu, onToggleCollapse, collapsed }
   const badgeCount = urgentCount > 0 ? urgentCount : events.length;
 
   return (
-    <header className="h-16 shrink-0 border-b border-line bg-base-900 flex items-center gap-3 px-4 sticky top-0 z-20">
+    <header className="h-16 shrink-0 border-b border-slate-200 bg-white flex items-center gap-3 px-4 sticky top-0 z-20">
       <button
         type="button"
         onClick={onOpenMobileMenu}
-        className="md:hidden text-ink-mid hover:text-ink-hi text-lg"
+        className="md:hidden text-slate-500 hover:text-slate-900 text-lg"
         aria-label="Abrir menú"
       >
         ☰
@@ -157,7 +157,7 @@ export default function Topbar({ onOpenMobileMenu, onToggleCollapse, collapsed }
       <button
         type="button"
         onClick={onToggleCollapse}
-        className="hidden md:flex text-ink-mid hover:text-ink-hi text-sm h-8 w-8 items-center justify-center rounded-md hover:bg-base-800 transition-colors"
+        className="hidden md:flex text-slate-500 hover:text-slate-900 text-sm h-8 w-8 items-center justify-center rounded-md hover:bg-slate-100 transition-colors"
         aria-label={collapsed ? "Expandir menú" : "Colapsar menú"}
         title={collapsed ? "Expandir menú" : "Colapsar menú"}
       >
@@ -170,14 +170,14 @@ export default function Topbar({ onOpenMobileMenu, onToggleCollapse, collapsed }
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="relative h-9 w-9 rounded-md flex items-center justify-center text-ink-mid hover:text-ink-hi hover:bg-base-800 transition-colors"
+          className="relative h-9 w-9 rounded-full flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors"
           aria-label="Notificaciones"
         >
           🔔
           {badgeCount > 0 && (
             <span
-              className={`absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full text-[10px] leading-4 font-mono text-base-950 ${
-                urgentCount > 0 ? "bg-signal-crit" : "bg-signal-info"
+              className={`absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full text-[10px] leading-4 font-mono text-white ${
+                urgentCount > 0 ? "bg-rose-500" : "bg-blue-500"
               }`}
             >
               {badgeCount > 9 ? "9+" : badgeCount}
@@ -186,15 +186,15 @@ export default function Topbar({ onOpenMobileMenu, onToggleCollapse, collapsed }
         </button>
 
         {open && (
-          <div className="absolute right-0 mt-2 w-96 max-w-[90vw] rounded-lg border border-line bg-base-900 shadow-panel overflow-hidden">
-            <div className="px-4 py-3 border-b border-line">
-              <div className="font-display font-semibold text-ink-hi text-sm">Notificaciones</div>
-              <div className="text-xs text-ink-lo font-body">Actividad reciente</div>
+          <div className="absolute right-0 mt-2 w-96 max-w-[90vw] rounded-lg border border-slate-200 bg-white shadow-xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-100">
+              <div className="font-display font-semibold text-slate-900 text-sm">Notificaciones</div>
+              <div className="text-xs text-slate-400 font-body">Actividad reciente</div>
             </div>
 
             <div className="max-h-96 overflow-y-auto scrollbar-thin">
               {events.length === 0 && (
-                <div className="px-4 py-6 text-center text-sm text-ink-mid font-body">
+                <div className="px-4 py-6 text-center text-sm text-slate-500 font-body">
                   Sin actividad reciente.
                 </div>
               )}
@@ -205,17 +205,17 @@ export default function Topbar({ onOpenMobileMenu, onToggleCollapse, collapsed }
                     key={ev.id}
                     href={`/proyecto/${ev.systemId}`}
                     onClick={() => setOpen(false)}
-                    className="flex items-start gap-2.5 px-4 py-3 border-b border-line last:border-b-0 hover:bg-base-800/60 transition-colors"
+                    className="flex items-start gap-2.5 px-4 py-3 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors"
                   >
                     <span className="mt-0.5 shrink-0">
                       <EventIcon kind={ev.kind} />
                     </span>
                     <div className="min-w-0">
-                      <div className="text-sm text-ink-hi font-body leading-snug">{heading}</div>
+                      <div className="text-sm text-slate-800 font-body leading-snug">{heading}</div>
                       {detail && (
-                        <div className="text-xs text-ink-mid font-body truncate">{detail}</div>
+                        <div className="text-xs text-slate-500 font-body truncate">{detail}</div>
                       )}
-                      <div className="text-[11px] text-ink-lo font-mono mt-0.5">
+                      <div className="text-[11px] text-slate-400 font-mono mt-0.5">
                         <RelativeTime iso={ev.at} />
                       </div>
                     </div>
@@ -227,7 +227,7 @@ export default function Topbar({ onOpenMobileMenu, onToggleCollapse, collapsed }
             <Link
               href="/tickets"
               onClick={() => setOpen(false)}
-              className="block text-center py-2.5 text-sm font-body text-signal-info hover:underline border-t border-line"
+              className="block text-center py-2.5 text-sm font-body text-blue-600 hover:underline border-t border-slate-100"
             >
               Ver todos →
             </Link>
@@ -235,7 +235,7 @@ export default function Topbar({ onOpenMobileMenu, onToggleCollapse, collapsed }
         )}
       </div>
 
-      <div className="h-9 w-9 rounded-full bg-base-800 border border-line flex items-center justify-center text-xs font-display font-semibold text-ink-hi">
+      <div className="h-9 w-9 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-xs font-display font-semibold text-slate-700">
         CT
       </div>
     </header>

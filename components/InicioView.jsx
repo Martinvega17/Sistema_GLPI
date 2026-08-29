@@ -45,9 +45,7 @@ function lastResponseOf(tickets) {
 
 const PRIORITY_DOT = {
   Media: "bg-blue-500",
-  Alta: "bg-orange-500",
-  "Muy alta": "bg-red-500",
-  Mayor: "bg-red-700",
+  Alta: "bg-red-500",
   Baja: "bg-slate-400",
   "Muy baja": "bg-slate-300",
 };

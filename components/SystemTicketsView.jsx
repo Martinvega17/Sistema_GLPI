@@ -45,7 +45,7 @@ function TicketRow({ ticket, extras, extrasLoading, onVisible, onOpenDetail }) {
   const cellLoading = <span className="text-ink-lo font-mono text-xs animate-pulse">…</span>;
 
   return (
-    <tr ref={rowRef} className="border-t border-line hover:bg-base-800/60 transition-colors align-top">
+    <tr ref={rowRef} className="border-t border-line hover:bg-slate-100/60 transition-colors align-top">
       <td className="px-3 py-2.5 whitespace-nowrap">
         <a
           href={ticket.url}
@@ -323,7 +323,7 @@ export default function SystemTicketsView({ system, tickets, onOpenDetail, gener
             onClick={() => setSlaFilter(key)}
             className={`px-3 py-1.5 rounded-md text-sm font-body border transition-colors ${
               slaFilter === key
-                ? "border-signal-info bg-base-800 text-ink-hi"
+                ? "border-signal-info bg-slate-100 text-ink-hi"
                 : "border-line bg-base-900 text-ink-mid hover:text-ink-hi"
             }`}
           >
@@ -340,7 +340,7 @@ export default function SystemTicketsView({ system, tickets, onOpenDetail, gener
             onClick={() => setStatusFilter(key)}
             className={`px-3 py-1.5 rounded-md text-sm font-body border transition-colors ${
               statusFilter === key
-                ? "border-signal-info bg-base-800 text-ink-hi"
+                ? "border-signal-info bg-slate-100 text-ink-hi"
                 : "border-line bg-base-900 text-ink-mid hover:text-ink-hi"
             }`}
           >
@@ -350,14 +350,14 @@ export default function SystemTicketsView({ system, tickets, onOpenDetail, gener
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-lg border border-line bg-base-900 p-8 text-center text-ink-mid font-body">
+        <div className="rounded-lg border border-line bg-slate-100 p-8 text-center text-ink-mid font-body">
           No hay tickets que coincidan con el filtro actual.
         </div>
       ) : (
-        <div className="rounded-lg border border-line bg-base-900 shadow-panel overflow-hidden">
+        <div className="rounded-lg border border-line bg-slate-100 shadow-panel overflow-hidden">
           <div className="overflow-x-auto scrollbar-thin">
             <table className="w-full text-sm">
-              <thead className="bg-base-800 text-ink-mid text-xs uppercase tracking-wider font-body">
+              <thead className="bg-slate-100 text-ink-mid text-xs uppercase tracking-wider font-body">
                 <tr>
                   <th className="text-left px-3 py-2.5 font-medium whitespace-nowrap">Folio</th>
                   <th className="text-left px-3 py-2.5 font-medium whitespace-nowrap">Título</th>

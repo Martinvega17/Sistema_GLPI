@@ -115,7 +115,7 @@ export default function DashboardPage() {
   }, [data, activeSystem, slaFilter, statusFilter, searchQuery]);
 
   return (
-    <main className="max-w-7xl mx-auto px-6 py-8 flex flex-col gap-6">
+    <main className="min-h-full bg-base-950 max-w-7xl mx-auto px-6 py-8 flex flex-col gap-6">
       <ToastNotifications toasts={toasts} onDismiss={dismissToast} />
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>

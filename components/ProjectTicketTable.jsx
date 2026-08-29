@@ -48,22 +48,57 @@ function compareValues(a, b, type) {
   return String(a || "").localeCompare(String(b || ""), "es");
 }
 
-function ExpandableText({ text, emptyLabel = "—", linkLabel = "Leer más" }) {
-  const [expanded, setExpanded] = useState(false);
+function ExpandableText({ text, emptyLabel = "—", linkLabel = "Leer más", title, onOpen }) {
   if (!text) return <span className="text-slate-400">{emptyLabel}</span>;
   const isLong = text.length > 90;
-  const preview = isLong && !expanded ? `${text.slice(0, 90)}…` : text;
+  const preview = isLong ? `${text.slice(0, 90)}…` : text;
   return (
     <div className="max-w-[260px] whitespace-pre-line">
       <span>{preview}</span>
       {isLong && (
         <button
-          onClick={() => setExpanded((v) => !v)}
+          onClick={() => onOpen({ title, text })}
           className="block text-blue-600 hover:underline text-xs mt-0.5"
         >
-          {expanded ? "Ver menos" : linkLabel}
+          {linkLabel}
         </button>
       )}
+    </div>
+  );
+}
+
+// Ventana emergente para leer el texto completo de una celda larga
+// (Descripción / Descripción de la solución) sin tener que expandir la fila
+// y desplazarse hacia abajo en toda la tabla — el texto trae su propio
+// scroll interno si es muy largo.
+function TextModal({ content, onClose }) {
+  if (!content) return null;
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div className="absolute inset-0 bg-slate-900/40" />
+      <div
+        className="relative bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between gap-4 px-5 py-3 border-b border-slate-200 shrink-0">
+          <h3 className="font-display font-semibold text-slate-800 text-sm">{content.title}</h3>
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-700 text-lg leading-none shrink-0"
+            aria-label="Cerrar"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="px-5 py-4 overflow-y-auto text-sm text-slate-700 whitespace-pre-line scrollbar-thin">
+          {content.text}
+        </div>
+      </div>
     </div>
   );
 }
@@ -97,6 +132,7 @@ function ChipList({ items, colorClass = "bg-slate-100 text-slate-600", max = 2 }
 
 export default function ProjectTicketTable({ tickets }) {
   const [sort, setSort] = useState(null); // { key, direction, type }
+  const [modalContent, setModalContent] = useState(null); // { title, text } | null
 
   const sorted = useMemo(() => {
     if (!sort) return tickets;
@@ -160,7 +196,11 @@ export default function ProjectTicketTable({ tickets }) {
                 </td>
                 <td className="px-4 py-3 text-slate-800 max-w-[220px]">{t.title}</td>
                 <td className="px-4 py-3 text-slate-600">
-                  <ExpandableText text={t.content} />
+                  <ExpandableText
+                    text={t.content}
+                    title={`Descripción · Ticket #${t.rawId}`}
+                    onOpen={setModalContent}
+                  />
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <span className="inline-flex items-center gap-1.5 text-slate-600">
@@ -173,7 +213,12 @@ export default function ProjectTicketTable({ tickets }) {
                 </td>
                 <td className="px-4 py-3 text-slate-600 whitespace-nowrap">{t.requester || "—"}</td>
                 <td className="px-4 py-3 text-slate-600">
-                  <ExpandableText text={t.solution} linkLabel="Ver solución" />
+                  <ExpandableText
+                    text={t.solution}
+                    linkLabel="Ver solución"
+                    title={`Descripción de la solución · Ticket #${t.rawId}`}
+                    onOpen={setModalContent}
+                  />
                 </td>
                 <td className="px-4 py-3 text-slate-500 whitespace-nowrap font-mono text-xs">
                   {formatDateTime(t.dateSolved)}
@@ -199,6 +244,7 @@ export default function ProjectTicketTable({ tickets }) {
           </tbody>
         </table>
       </div>
+      <TextModal content={modalContent} onClose={() => setModalContent(null)} />
     </div>
   );
 }

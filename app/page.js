@@ -16,6 +16,7 @@ export default function DashboardPage() {
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [lastFetchError, setLastFetchError] = useState(null);
   const [toasts, setToasts] = useState([]);
+  const [loadingSeconds, setLoadingSeconds] = useState(0);
 
   // Snapshot de la carga anterior (id -> dateModified) para detectar
   // tickets nuevos o con cambios entre refrescos. useRef porque no debe
@@ -74,6 +75,15 @@ export default function DashboardPage() {
     return () => clearInterval(id);
   }, []);
 
+  // Solo para la primera carga: cuenta los segundos que lleva esperando,
+  // así "Conectando..." muestra una señal de vida en vez de quedarse
+  // estático — y si de verdad se traba, al menos sabes cuánto lleva.
+  useEffect(() => {
+    if (data) return;
+    const id = setInterval(() => setLoadingSeconds((s) => s + 1), 1000);
+    return () => clearInterval(id);
+  }, [data]);
+
   const ticketsBySystem = useMemo(() => {
     const map = {};
     if (data) {
@@ -128,7 +138,17 @@ export default function DashboardPage() {
         )}
 
         {!data && !lastFetchError && (
-          <div className="p-8 text-ink-mid font-mono text-sm">Conectando con los 5 sistemas…</div>
+          <div className="p-8 text-ink-mid font-mono text-sm">
+            Conectando con los 5 sistemas… ({loadingSeconds}s)
+            {loadingSeconds >= 20 && (
+              <div className="mt-2 text-signal-warn text-xs max-w-md">
+                Esto está tardando más de lo normal — puede ser que algún GLPI esté respondiendo
+                lento por VPN/red. Revisa la terminal donde corre <code>npm run dev</code>: ahí se
+                imprime el avance de cada sistema (sesión, páginas de tickets, o el error si
+                falló).
+              </div>
+            )}
+          </div>
         )}
 
         {data && view === "inicio" && <InicioView data={data} onGoToSystem={setView} />}

@@ -1,6 +1,5 @@
 {
-  "/api/assistant/route": "app/api/assistant/route.js",
-  "/api/ticket-detail/route": "app/api/ticket-detail/route.js",
   "/api/tickets/route": "app/api/tickets/route.js",
+  "/api/ticket-extras/route": "app/api/ticket-extras/route.js",
   "/page": "app/page.js"
 }

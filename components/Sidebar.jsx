@@ -78,7 +78,6 @@ export default function Sidebar({ systems, activeView, onNavigate, toastCount })
         })}
       </nav>
 
-      {/* ... resto del código ... */}
     </aside>
   );
 }

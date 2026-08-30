@@ -11,6 +11,7 @@ import unadmIcon from "@/public/icons/unadm.png";
 import prepaIcon from "@/public/icons/prepa.png";
 import secihtiIcon from "@/public/icons/secihti.png";
 import mujeresIcon from "@/public/icons/mujeres.png";
+import imssIcon from "@/public/icons/imss.png";
 
 const CATEGORY_ICONS = {
   cns: cnsIcon,
@@ -18,6 +19,7 @@ const CATEGORY_ICONS = {
   prepa: prepaIcon,
   secihti: secihtiIcon,
   mujeres: mujeresIcon,
+  imss: imssIcon,
   // "imss" no tiene logo todavía en /public/icons — cae al monograma de
   // abajo automáticamente (ver <CategoryLogo />).
 };
@@ -27,7 +29,13 @@ function CategoryLogo({ category }) {
   if (icon) {
     return (
       <span className="h-7 w-7 rounded-md overflow-hidden shrink-0 bg-white border border-slate-200 flex items-center justify-center">
-        <Image src={icon} alt={category.label} width={28} height={28} className="object-cover w-full h-full" />
+        <Image
+          src={icon}
+          alt={category.label}
+          width={28}
+          height={28}
+          className="object-contain w-full h-full p-0.5"
+        />
       </span>
     );
   }

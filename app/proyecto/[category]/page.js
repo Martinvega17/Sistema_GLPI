@@ -21,9 +21,15 @@ const SEARCH_DEBOUNCE_MS = 400;
 const pageCache = new Map(); // key -> { data, ts }
 const CACHE_TTL_MS = 20_000;
 
+// Proyectos desactivados temporalmente: en vez de consultar tickets,
+// esta vista solo muestra un aviso de mantenimiento. Para reactivar un
+// proyecto, quita su id de este arreglo.
+const PROJECTS_UNDER_MAINTENANCE = ["imss"];
+
 export default function ProjectPage() {
   const { category: categoryId } = useParams();
   const searchParams = useSearchParams();
+  const isUnderMaintenance = PROJECTS_UNDER_MAINTENANCE.includes(categoryId);
   // El menú lateral manda ?estado=pendientes en el enlace "Pendientes" de
   // cada sistema; sin ese parámetro (enlace "Tickets") la vista abre
   // mostrando todo el histórico, igual que antes.
@@ -52,6 +58,10 @@ export default function ProjectPage() {
   }, [categoryId, systemFilter, statusFilter, searchQuery, pageSize]);
 
   useEffect(() => {
+    if (isUnderMaintenance) {
+      setLoading(false);
+      return;
+    }
     const controller = new AbortController();
     const params = new URLSearchParams({
       category: categoryId,
@@ -123,6 +133,30 @@ export default function ProjectPage() {
   }, [data]);
 
   const pagination = data?.pagination;
+
+  if (isUnderMaintenance) {
+    return (
+      <main className="min-h-full bg-slate-50 max-w-[1600px] mx-auto px-6 py-8 flex flex-col gap-5">
+        <header>
+          <h1 className="font-display text-2xl font-bold text-slate-900">
+            {categoryId?.toUpperCase()}
+          </h1>
+        </header>
+        <div className="flex-1 flex items-center justify-center py-24">
+          <div className="max-w-md text-center rounded-2xl border border-amber-200 bg-amber-50 px-8 py-10">
+            <div className="text-4xl mb-3" aria-hidden>
+              🛠️
+            </div>
+            <h2 className="font-display text-lg font-bold text-amber-800">Proyecto en mantenimiento</h2>
+            <p className="text-amber-700 text-sm font-body mt-2">
+              Este proyecto está temporalmente desactivado por mantenimiento. Vuelve a intentarlo más
+              tarde.
+            </p>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-full bg-slate-50 max-w-[1600px] mx-auto px-6 py-8 flex flex-col gap-5">

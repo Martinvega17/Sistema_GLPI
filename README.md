@@ -122,7 +122,68 @@ Limitaciones a tener en cuenta en el plan gratuito de Vercel:
 - Cron Jobs de Vercel Hobby: 1 ejecución al día. Para alertas de SLA cada
   pocos minutos, usa un cron externo gratuito (ver sección 3).
 
-## 7. Seguridad — importante
+## 7. Arrancar rápido en un servidor propio (evitar que cada reinicio tarde)
+
+Si corres esto en un servidor propio (no Vercel) y notaste que "pausar y
+volver a arrancar desde 0" tarda mucho, hay dos causas separadas — y las dos
+ya están cubiertas:
+
+### 7.1 No uses `npm run dev` en producción
+
+`next dev` compila cada página/ruta la primera vez que se pide, así que
+cada reinicio = recompilar todo mientras alguien espera viendo la pantalla
+cargar. En producción usa **build una vez + start**:
+
+```bash
+npm run build      # compila todo de una vez (tarda, pero solo aquí)
+npm run start      # arranca ya compilado — mucho más rápido
+```
+
+Para que quede corriendo 24/7 y se reinicie solo si se cae (y no tengas que
+volver a hacer `npm run build` cada vez que reinicias), usa un manejador de
+procesos como [PM2](https://pm2.keymetrics.io/):
+
+```bash
+npm i -g pm2
+npm run build
+pm2 start npm --name glpi-dashboard -- run start
+pm2 save            # recuerda el proceso entre reinicios del servidor
+pm2 startup         # (una vez) deja PM2 arrancando solo si reinicia el SO
+```
+
+Para "pausar" sin perder el build ya compilado: `pm2 stop glpi-dashboard` /
+`pm2 restart glpi-dashboard` — nunca vuelve a compilar, solo reinicia el
+proceso Node ya construido.
+
+### 7.2 Snapshot en disco de los tickets (ya implementado)
+
+Aparte de la compilación, la otra parte lenta era que la caché de tickets de
+`lib/ticketSource.js` vivía solo en memoria del proceso: al reiniciar,
+desaparecía y la primera carga tenía que volver a autenticar y descargar el
+historial completo de los 5 GLPI desde cero.
+
+Ahora, cada vez que un sistema se trae con éxito, su resultado también se
+guarda en `.data/ticket-cache/<sistema>.json`. Al reiniciar el proceso:
+
+- Si ese archivo existe, la app lo sirve **de inmediato** (marcado como
+  `stale: true` con un `cachedAt` de cuándo se generó) mientras, en segundo
+  plano, se dispara la llamada real a GLPI para refrescarlo — así nadie se
+  queda viendo "Conectando con los 5 sistemas…" esperando el roundtrip
+  completo.
+- Si no existe (primera vez que corre este sistema, o el disco es efímero
+  — p. ej. un contenedor que se recrea desde cero en cada deploy), no hay
+  snapshot que servir y esa primera carga sí tiene que esperar la llamada
+  real, igual que antes.
+
+Esta carpeta (`.data/`) ya está en `.gitignore` — no se sube al repo, es
+solo caché local de ese servidor. Si el "iniciar desde 0" que mencionas es
+en realidad un contenedor/deploy que se recrea con disco nuevo cada vez
+(no el mismo proceso pausado/reanudado), esto no puede ayudar por sí solo:
+ahí lo que hace falta es montar un volumen persistente en esa ruta, o mover
+la caché a algo externo (Redis, por ejemplo) — dilo si es tu caso y lo
+ajustamos.
+
+## 8. Seguridad — importante
 
 - **Cambia la contraseña de `martin.vega`** ahora que se compartió en texto
   plano en esta conversación, y usa una distinta para cada sistema si es

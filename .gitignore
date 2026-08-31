@@ -1,3 +1,8 @@
 node_modules
-.next/
 node_modules.zip
+.next/
+.env.local
+.env*.local
+.data/
+reports/
+*.log

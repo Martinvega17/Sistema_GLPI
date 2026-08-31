@@ -103,6 +103,19 @@ export default function AssistantPanel({ ticket, onClose }) {
                 {description}
               </p>
             )}
+            {detail?.images?.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {detail.images.map((img, i) => (
+                  <a key={i} href={img.src} target="_blank" rel="noreferrer">
+                    <img
+                      src={img.src}
+                      alt={img.alt}
+                      className="h-16 w-16 object-cover rounded border border-line"
+                    />
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Última respuesta: qué área respondió (según el grupo asignado
@@ -136,6 +149,19 @@ export default function AssistantPanel({ ticket, onClose }) {
                 <p className="text-sm text-ink-hi font-body leading-relaxed whitespace-pre-wrap max-h-32 overflow-y-auto scrollbar-thin">
                   {detail.lastFollowup.message || "(sin contenido)"}
                 </p>
+                {detail.lastFollowup.images?.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {detail.lastFollowup.images.map((img, i) => (
+                      <a key={i} href={img.src} target="_blank" rel="noreferrer">
+                        <img
+                          src={img.src}
+                          alt={img.alt}
+                          className="h-16 w-16 object-cover rounded border border-line"
+                        />
+                      </a>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
